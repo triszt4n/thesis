@@ -22,8 +22,14 @@ jobs:
             texlive-xetex \
             texlive-fonts-recommended \
             biber chktex latexmk
-      - name: Run Make 🐣
-        run: make
+      - name: Compile LaTeX document
+        uses: xu-cheng/latex-action@v2
+        with:
+          root_file: thesis.tex
+          latexmk_shell_escape: true
+      - name: Move
+        run: |
+          mv thesis.pdf public/thesis.pdf
       - name: Deploy 🚀
         uses: JamesIves/github-pages-deploy-action@v4
         with:
