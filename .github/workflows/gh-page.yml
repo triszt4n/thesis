@@ -14,7 +14,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install dependencies 🥚
-        run: sudo apt-get install texlive-xetex
+        run: |
+          sudo apt-get install texlive-latex-base \
+            texlive-extra-utils \
+            texlive-latex-extra \
+            texlive-fonts-extra \
+            texlive-xetex \
+            texlive-fonts-recommended \
+            biber chktex latexmk
       - name: Run Make 🐣
         run: make
       - name: Deploy 🚀
