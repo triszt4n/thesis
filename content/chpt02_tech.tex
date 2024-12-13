@@ -1,0 +1,137 @@
+\chapter{Technológiai áttekintés}
+
+\section{A videó streaming protokolljai}
+
+Itt jó sok alszekcióban kifejtem a legfontosabb end-to-end protokollcsaládjait a streamingnek. Szó lesz az RTP/RTMP (és annak pull és push változatáról), a HLS/DASH, a WebRTC protokollokról. Ezek kardinalitása (források és felhasználók számát is figyelembe véve!) és a különféle alkalmazási területeik lesznek a fókuszban. Felmerül, hol működik az ABR (Adaptive Bitrate Streaming).
+
+\section{Amazon Web Services}
+
+Bevezető az AWS szolgáltatások világába, röviden bemutatom, hogy épül fel egy AWS account, milyen szolgáltatáscsoportokat ajánl, mivel lehet korlátozni a hozzáférést, az erőforrások akár egymás közötti kommunikációjá irányítani.
+
+\subsection{Hagyományos webalkalmazások erőforrásai AWS-en}
+
+Cloudfront mint CDN, S3 mint objektumtároló, RDS mint relációs adatbázis, Lambda mint szerver nélküli függvény, VPC mint privát hálózat, IAM mint hozzáféréskezelés, WAF mint web application firewall, Route53 mint DNS szolgáltatás.
+
+\subsection{Videó streaming AWS-en}
+
+Ebben pedig a már konkrét felhasznált (és nem felhasznált) AWS szolgáltatásokat mutatom be, mint a MediaLive, MediaPackage, és melyiket miért választottam, és a többit (IVS, saját konténerizált ffmpeg szerver) miért nem.
+
+\section{A webes komponensek technológiái}
+
+Ebben a részben a konkrét AWS-beli PaaS és FaaS szolgáltatásokon futó több rétegű appok választott technológiáit mutatom be: Node.js, React, Prisma, Postgres.
+
+\subsection{TypeScript és JavaScript nyelvek}
+
+Miért választottam a TypeScriptet, miért jobb a JavaScriptnél, felhasználása a JavaScriptnek a Lambda és Cloudfront Function-ökben.
+
+\subsection{Node.js ökoszisztéma}
+
+Node.js futtatókörnyezet, NestJS keretrendszer, Prisma ORM, AWS SDK.
+
+\subsection{React és társkönyvtárai}
+
+React, React Hook Forms, React Query, Vite.js, TailwindCSS.
+
+\subsection{PostgreSQL}
+
+Hasznos, mert open source, sok helyen elérhető DBMS motor.
+
+\chapter{A tervezett felhőarchitektúra}
+
+Gyors bevezető arról, hogy külön AWS accountba dolgoztam és felügyeltem a költségeim.
+
+\section{Követelmények}
+
+Funkcionális és nem-funkcionális követelmények, a rendszerrel szemben támasztott elvárások. Event driven architektúra (kiterjeszthetőség érdekében), skálázhatóság, biztonság, megbízhatóság.
+
+\section{Logikai felépítés}
+
+High-level leírása az AWS accounton belüli/datacenteren belüli hálózati kommunikáció rétegeinek.
+
+\section{Video-on-Demand kiszolgálás folyamata}
+
+High-level leírása a VoD kiszolgálás folyamatának, megemlítve, melyik választott szolgáltatások vesznek részt ebben.
+
+\section{Live streaming folyamata}
+
+High-level leírása a live streaming folyamatának, megemlítve, melyik választott szolgáltatások vesznek részt ebben.
+
+\section{Konfigurációmenedzsment}
+
+Terraform választásának indoklása. Kialakított Terragrunt module rendszer. GitHub actions a Terraform tervek előnézetére, OIDC felállítása az AWS role felvételére.
+
+\chapter{Kliens közeli komponensek implementációja}
+
+\section{A CDN és a hozzácsatolt erőforrások}
+
+A CDN és az originjeinek tárgyalása, melyik origin mire való. VPC Origin tárgyalása, annak haszna. A WAF szerepe, a felkapcsolt cert és WAF web ACL szerepe.
+
+\section{A statikus weboldal}
+
+Az S3 bucketee. A statikus website kiszolgálásának módja.
+
+\subsection{A React alkalmazás fejlesztése}
+
+Fejlesztés részletei. Nem annyira lényeges most ebben a dolgozatban, de néhány szép kihívást jelentő kidolgozott form és egyebeket be lehet itt mutatni.
+
+\subsection{A weboldal telepítésének CI/CD folyamata}
+
+GitHub Actions a smoke tesztekre, workflowk, a deploymentek. Értsd itt: S3 telepítés.
+
+\section{Média erőforrások objektumtárolói}
+
+Hogy lettek felkonfigurálva és miért az egyes S3 bucket-ok (bucket policy, CORS policy).
+
+\section{Elemental MediaLive és MediaPackage a live streamingben}
+
+Az Elemental stack részeinek felkonfigurálása, a MediaLive channel és a MediaPackage channel felépítése, a MediaPackage endpoint konfigurálása. Miként kerül kiszolgálásra, melyiket mire használom. OBS bekötésének módja.
+
+\chapter{Szerver oldali folyamatok implementációi}
+
+\section{A virtuális privát felhő komponensei}
+
+A VPC-beli (Virtual Private Cloud) subnetek, a security groupok, route táblák. A biztonság vizsgálata.
+
+\section{A Node.js alkalmazás fejlesztése}
+
+Fejlesztés részletei. Kitérve arra, hogy miképp könnyíti a munkát a Prisma, milyen egyéb szolgáltatások kerültek be, mi a felépítése a reponak, miért választottam ezt a stacket. S3 bucketba való mentése a videónak egy érdekes rész. Itt lehet szó az adatbázisbeli entitásokról is.
+
+\section{A konténerizált környezet}
+
+Leírás, hogy miért választottam a konténerizált környezetet, a konténerizálás előnyeit, hátrányait. Hogy használható ki a legjobban a konténerizáció az Application Load Balancer-rel együtt. Miképp kapcsoltam ezt a kettőt össze (ECS service, ALB).
+
+\subsection{A Node.js szerveralkalmazás ECS-en}
+
+Az ECS orkesztrációs toolsetjének kialakítása, a konténer rétegződés felépítése ECS-ben, a konténer registry (ECR) bekötése. Környezeti változók, portok, ALB-re való kötése. Miből állt a dockerizálás nekem (Dockerfile, registry, image build, push, networking).
+
+Milyen IAM role-okat kellett feltenni rá, mikkel kommunikál kifelé, mi indokolta, hogy publikus subnetbe kerüljön. Hogy hív meg más külső rácsatlakozó erőforrásokat (S3 bucket, RDS instance, Lambda függvény, MediaLive channel).
+
+\subsection{A szerveralkalmazás CI/CD folyamatai}
+
+GitHub Actions a smoke tesztre, a deploymentre: Docker build és ECR-be telepítés.
+
+\section{Elemental MediaConvert felhasználása}
+
+Az Elemental MediaConvert API használata a Lambdából, illetve hogy hogy hívódik meg a Lambda, milyen triggerrel, milyen környezeti változókkal, milyen IAM role-al. Hogy kellett felkonfigurálni a MediaConvert job, hogy kellett magát a Lambdát felkonfigolni, hogy tudja is hívni.
+
+\chapter{Tesztelés és mérés}
+
+\section{Az infrastruktúra terhelése}
+
+Szimpla load tesztelés összeállításáról fogok itt értekezni, és a mérési eredmények kiértékelése.
+
+\section{Népszerű szolgáltatók metrikái}
+
+Keresni kell cikkeket Netflix blogban vagy valahol arról, a népszerű szolgáltatók milyen SLA-val, milyen statisztikával dolgoznak.
+
+\chapter{Összegzés}
+
+Tanulságok, a rendszer működésének és fejlesztési élmények értékelése. Média streaming jövője saját meglátások szerint.
+
+\chapter{Kitekintés}
+
+\section{Egyéb AWS szolgáltatások}
+
+Miért nem használtam az Aurorat RDS helyett, miért nem került sor Amplify Hosting alkalmazására a frontend és backend összekapcsolására és egy stackben való deployálására (skálázhatóságra való kiélezés miatt).
+
+\section{Vendor lock-in kezelése}
