@@ -9,7 +9,7 @@ xelatex: compile_xelatex
 
 compile_xelatex:
 	xelatex $(MODE) $(DOCUMENT)
-	bibtex $(DOCUMENT)
+	biber $(DOCUMENT)
 	xelatex $(MODE) $(DOCUMENT)
 	xelatex $(MODE) $(DOCUMENT)
 	mv $(DOCUMENT).pdf $(DOCUMENT)-xelatex.pdf
@@ -19,7 +19,7 @@ pdflatex: compile_pdflatex
 
 compile_pdflatex:
 	pdflatex $(MODE) $(DOCUMENT)
-	bibtex $(DOCUMENT)
+	biber $(DOCUMENT)
 	pdflatex $(MODE) $(DOCUMENT)
 	pdflatex $(MODE) $(DOCUMENT)
 	mv $(DOCUMENT).pdf $(DOCUMENT)-pdflatex.pdf
@@ -29,7 +29,7 @@ lualatex: compile_lualatex
 
 compile_lualatex:
 	lualatex $(MODE) $(DOCUMENT)
-	bibtex $(DOCUMENT)
+	biber $(DOCUMENT)
 	lualatex $(MODE) $(DOCUMENT)
 	lualatex $(MODE) $(DOCUMENT)
 	mv $(DOCUMENT).pdf $(DOCUMENT)-lualatex.pdf
