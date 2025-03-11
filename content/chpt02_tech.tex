@@ -1,20 +1,118 @@
 \chapter{Technológiai áttekintés}
 
-\section{A videó streaming protokolljai}
+A videó egy multimédiás eszköz auditív és mozgó vizuális információ tárolására, visszajátszására. Fontos felhasználási területei a média és a szórakoztató ipar. Ebben a fejezetben azon technológiák kerülnek vizsgálatra, amelyek ismerete nélkülözhetetlen a videó streaming megértéséhez, valamint az streaming megvalósításához.
 
-Itt jó sok alszekcióban kifejtem a legfontosabb end-to-end protokollcsaládjait a streamingnek. Szó lesz az RTP/RTMP (és annak pull és push változatáról), a HLS/DASH, a WebRTC protokollokról. Ezek kardinalitása (források és felhasználók számát is figyelembe véve!) és a különféle alkalmazási területeik lesznek a fókuszban. Felmerül, hol működik az ABR (Adaptive Bitrate Streaming).
+\section{A videó formátumai}
+
+Egy videó tartalmazhat különböző nyelvű hanganyagokat, mozgóképet, és egyéb metaadatokat -- például feliratokat és miniatűr állóképeket -- mind egy fájlban. Ezek közös tárolására konténerformátumokat alkalmazunk, amelyek megadják, az egyes adatfolyamok hogyan, milyen paraméterekkel, kódolással, tömörítéssel kerüljenek tárolásra, és hogyan kerülhetnek majd lejátszásra.
+
+Szokásos összekeverni, de a konténerformátumoktól függetlenül a mozgóképkódolás és a hangkódolás különálló folyamatok. A kódolás egy algoritmus nyomán az adatot tömöríti, hogy a tárolás és a továbbítás hatékonyabb legyen.
+
+\subsection{Konténerformátumok}
+
+A legelterjedtebb és legszélesebb körben támogatott konténerformátum a Moving Picture Experts Group (MPEG) gondozásában specifikált MP4 -- avagy a sztenderdben használt nevén: MPEG-4 Part 14 --, amely az MPEG-4 projekt részeként született 2001-ben.
+
+Ugyancsak az MPEG gondozásában, az MPEG-2 projekt részeként született 1995-ben az MPEG Transport Stream (MPEG-TS) konténerformátum, amely elsősorban a digitális televíziózásban használatos, és így az internetes videó streaming során is. Felbontja a videóadatokat kisebb, fix hosszú adatcsomagokra, ezzel is előkészítve a tulajdonképpeni kis késleltetésű azonnali továbbítására a videóanyagnak a hálózaton keresztül.
+
+További elterjedt konténerformátumok közé tartozik a Matroska Video (MKV), amely a hibatűréséről ismert; Apple vállalat által macOS-re és iOS-re optimalizálva fejlesztett QuickTime Movie (MOV) formátuma; valamint a WebM, egy szabad felhasználású webes kiszolgálásra optimalizálódott formátum, amelyet nagyobb jelentőségű webböngészők mind támogatnak. Régebbi, már kevésbé használt vagy kivezetett formátumok közé tartozik az Audio Video Interleave (AVI) és a Flash Video (FLV).
+
+\subsection{Mozgókép kódolási módszerei}
+
+Az MPEG-4 projekt keretében született az Advanced Video Coding (AVC) -- avagy H.264 -- kódolási szabvány mozgókép kódolására, amely 2004-ban vált elérhetővé. Továbbra is ez az egyik legelterjedtebb szabvány, a videó streamingben használt konténerformátumok is ezt a kódolást alkalmazzák.
+
+Természetesen azóta több új szabvány is megjelent hasonlóan az MPEG projektjei alatt, mint például az 2013-ban megjelent High Efficiency Video Coding (HEVC) -- avagy H.265 --, amely az AVC-től jobb tömörítést és jobb minőséget ígér, de a licencdíjak miatt nem vált annyira elterjedtté, mint az elődje.
+
+Ezen modern problémák kiküszöbölésére terjedt el a VP8 és a VP9 -- a WebM formátumnak tagjaként --, illetve az AV1 szabad felhasználású kódolási szabványok.
+
+A szabványok konkrét megvalósításával (kodekek) nem foglalkozunk részletesebben, de egy szabad felhasználású és nyílt forráskódú megvalósítása a H.264-nek a x264, amelyet például az FFMpeg szoftvercsomag is használ videó kódolására és dekódolására.
+
+\subsection{Hang kódolási módszerei}
+
+Hanganyag kódolására több elterjedt szabványt is Ilyen az MPEG Audio Layer III -- rövid nevén: MP3 -- is 1991-ből, ezt 1997-ben az Advanced Audio Coding (AAC) szabvány váltotta le. Ezen szabványok az MPEG által kerültek kifejlesztésre, valamint mindkettő veszteséges tömörítést alkalmaz, azaz a kódoláson és dekódoláson átesett hanganyag minősége nem lesz azonos az eredeti hanganyaggal.
+
+Egy másik, az előbbieknél jobb minőséget ígérő veszteséges tömörítéssel dolgozó kódolási szabvány Dolby AC-3 -- ismertebb nevén: Dolby Digital.
+
+\section{Videó streaming kiszolgálása}
+
+A médiastreamelés egy olyan folyamat, amely során az médiaadatokat -- mi esetünkben videóadatot -- egy adott hálózati protokoll felett, egy adott konténerformátumban, adott kódolásssal továbbítjuk a végfelhasználók számára. Elsősorban az azonnali elérhetőségre összpontosít, azaz a lejátszásnak a lehető legkisebb késleltetéssel kell megtörténnie, kevésbé fontos a streaming során a minőség megtartása, mint ahogy az fontos lenne teljes médiumok egyben való letöltésekor.
+
+A streaming során az adatfolyamba helyezés előtt a videóadatokat újrakódoljuk, majd kisebb adatcsomagokra -- úgynevezett ``packetekre'' -- bontjuk, és ezeket a csomagokat a hálózaton keresztül továbbítjuk a végfelhasználók felé. Az adatcsomagok önmagukban is értelmezhetőek, és a végfelhasználók lejátszó alkalmazásai képesek az adatcsomagokat a megfelelő sorrendben és időzítéssel lejátszani. A streaming könnyen reagál a lejátszás során ugrálásokra, előre- és visszatekerésre, mivel a videót nem kell teljes egészében letölteni a végfelhasználói eszközre, hanem a feldarabolt videócsomagot a lejátszás során továbbítjuk abban a pillanatban, amikor arra szükség lesz.
+
+\subsection{Az élő közvetítés és video-on-demand különbségei}
+
+Annak megfelelően, hogy az adat egésze mikor áll rendelkezésünkre, kettő fő streaming típust különböztetünk meg: az élő közvetítést (live streaming) és a video-on-demand (VOD) streaminget. A VOD esetében a videóadatokat előre rögzített formában tároljuk, és a végfelhasználók a videóadatokat a saját időbeosztásuknak megfelelően nézhetik meg. Az élő közvetítés esetében a videóadatokat valós időben továbbítjuk a végfelhasználók felé, és a végfelhasználók a videóadatokat a közvetítés során nézhetik meg.
+
+Különbözik mindkettőnél, hogy milyen fizikai infrastrukturális tervezést kell végrehajtani a legjobb kiszolgálás érdekében. Élő adásoknál a késleltetés a középponti kihívás, mivel a videóadatokat a lehető leggyorsabban kell továbbítani a végfelhasználók felé, hogy a közvetítés valóban élőnek tűnjön, ehhez magas számítási teljesítmény szükséges. A VOD esetében a hálózati sávszélességből adódó problémák leküzdése a központi kihívás, mivel a videót a felhasználók sokkal nagyobb közönsége kívánja elérni, azt kiváló minőségben szeretné megtekinteni, ennek ellenére a globális sávszélesség korlátozott. Itt a caching és a tartalomterjesztés optimalizálása a kulcs, ekkor jönnek képbe a Content Delivery Networkök (CDN-ek), azaz a tartalomterjesztő hálózatok.
+
+Üzleti szempontból a bevétel az élő adások során a közbeiktatott reklámokból származik főleg és a pay-per-view rendszerekből, míg a VOD esetében a közbeiktatott reklámokon kívül a felhasználók előfizetési díjából, tranzakcionális egyszeri vásárlásból -- amennyiben a reklámokat kerülni szeretnék.
+
+\subsection{Adaptive Bitrate Streaming}
+
+A streamelést erősen befolyásoló tényező a hálózati feltételek változása, amelyek a videólejátszás minőségét és késleltetését is befolyásolják. Az Adaptive Bitrate Streaming (ABR) technológiával a videólejátszó alkalmazás képes a hálózati feltételek változására reagálni.
+
+Az ABR technológiával a videóadatokat több különböző bitrátával kódoljuk a médiaszerveren, és a lejátszó alkalmazás a hálózati feltételeknek megfelelően választja ki a megfelelő bitrátájú videóadatokat a lejátszásra onnan.
+
+TODO: KÉSZíTS EGY ÁBRAJZATOT AZ ABR MŰKÖDÉSÉRŐL!
+
+\section{Videó streaming hálózati protokolljai}
+
+Videó streamelésére -- másképp fogalmazva: valamely korábban ismertetett formátumban tárolt videó adatfolyamba való illesztésére különböző hálózati protokollok palettája áll rendelkezésünkre.\cite{Wettl04}
+
+Ez a szekció az alkalmazás rétegben alkalmazott protokollok (Layer 7) közül vizsgál meg néhány streaming használatára elterjedt protokollt, megemlítve, milyen szállítási rétegű protokollokkal (Layer 4) tudnak együttműködni.
+
+\subsection{Real-Time Messaging Protocol}
+
+TODO
+
+\subsection{HTTP Live Streaming}
+
+TODO
+
+\subsection{Dynamic Adaptive Streaming over HTTP}
+
+TODO
+
+\subsection{WebRTC}
+
+A források és a streamet figyelők számának kardinalitása szempontjából ez a protokoll a legjobb választás, amennyiben a felhasználási célja az, hogy a felhasználók közvetlenül egymással kommunikálhassanak, és nem szükséges közbeiktatni egy központi médiaszervert. 
+
+TODO: ez bullshitnak hangzik!
+
+\section{Az FFMpeg szoftvercsomag}
+
+TODO
 
 \section{Amazon Web Services}
 
 Bevezető az AWS szolgáltatások világába, röviden bemutatom, hogy épül fel egy AWS account, milyen szolgáltatáscsoportokat ajánl, mivel lehet korlátozni a hozzáférést, az erőforrások akár egymás közötti kommunikációjá irányítani.
 
-\subsection{Hagyományos webalkalmazások erőforrásai AWS-en}
+\subsection{AWS Elemental}
 
-Cloudfront mint CDN, S3 mint objektumtároló, RDS mint relációs adatbázis, Lambda mint szerver nélküli függvény, VPC mint privát hálózat, IAM mint hozzáféréskezelés, WAF mint web application firewall, Route53 mint DNS szolgáltatás.
+TODO: MediaConvert
 
-\subsection{Videó streaming AWS-en}
+TODO: MediaLive
 
-Ebben pedig a már konkrét felhasznált (és nem felhasznált) AWS szolgáltatásokat mutatom be, mint a MediaLive, MediaPackage, és melyiket miért választottam, és a többit (IVS, saját konténerizált ffmpeg szerver) miért nem.
+TODO: MediaPackage
+
+\subsection{Egyéb megoldások videó streamingre AWS-en}
+
+IVS, és saját konténerizált ffmpeg szerver miért nem.
+
+\subsection{Amazon CloudFront}
+
+Korábbi szekcióban már említettük a CDN-eket, mint a video-on-demand alapú streaming szolgáltatások egyik kulcsfontosságú elemeit. Az Amazon CloudFront egy globális CDN, amely lehetővé teszi a felhasználók számára, hogy a tartalmat hozzájuk közelebbi szervereken tárolt cache-ből töltsék le, ezáltal csökkentve a késleltetést, csökkentve a központi szerverek terhelését, és növelve a letöltési sebességet.
+
+\subsection{Amazon ECS}
+
+TODO
+
+\subsection{Amazon RDS}
+
+TODO
+
+\subsection{Orkesztrációs szolgáltatások}
+
+Lambda és EventBridge, IAM role-ok, hálózati infra.
 
 \section{A webes komponensek technológiái}
 
@@ -28,114 +126,8 @@ Miért választottam a TypeScriptet, miért jobb a JavaScriptnél, felhasználá
 
 Node.js futtatókörnyezet, NestJS keretrendszer, Prisma ORM, AWS SDK.
 
-\subsection{React és társkönyvtárai}
+\subsection{React}
 
-React, React Hook Forms, React Query, Vite.js, TailwindCSS.
+TODO: Mire jó a React: Statikus oldalak generálása (SSG), egyszerűbb JavaScript egy helyen kezelése, gyors build toolok, erre ott a Vite.js.
 
-\subsection{PostgreSQL}
-
-Hasznos, mert open source, sok helyen elérhető DBMS motor.
-
-\chapter{A tervezett felhőarchitektúra}
-
-Gyors bevezető arról, hogy külön AWS accountba dolgoztam és felügyeltem a költségeim.
-
-\section{Követelmények}
-
-Funkcionális és nem-funkcionális követelmények, a rendszerrel szemben támasztott elvárások. Event driven architektúra (kiterjeszthetőség érdekében), skálázhatóság, biztonság, megbízhatóság.
-
-\section{Logikai felépítés}
-
-High-level leírása az AWS accounton belüli/datacenteren belüli hálózati kommunikáció rétegeinek.
-
-\section{Video-on-Demand kiszolgálás folyamata}
-
-High-level leírása a VoD kiszolgálás folyamatának, megemlítve, melyik választott szolgáltatások vesznek részt ebben.
-
-\section{Live streaming folyamata}
-
-High-level leírása a live streaming folyamatának, megemlítve, melyik választott szolgáltatások vesznek részt ebben.
-
-\section{Konfigurációmenedzsment}
-
-Terraform választásának indoklása. Kialakított Terragrunt module rendszer. GitHub actions a Terraform tervek előnézetére, OIDC felállítása az AWS role felvételére.
-
-\chapter{Kliens közeli komponensek implementációja}
-
-\section{A CDN és a hozzácsatolt erőforrások}
-
-A CDN és az originjeinek tárgyalása, melyik origin mire való. VPC Origin tárgyalása, annak haszna. A WAF szerepe, a felkapcsolt cert és WAF web ACL szerepe.
-
-\section{A statikus weboldal}
-
-Az S3 bucketee. A statikus website kiszolgálásának módja.
-
-\subsection{A React alkalmazás fejlesztése}
-
-Fejlesztés részletei. Nem annyira lényeges most ebben a dolgozatban, de néhány szép kihívást jelentő kidolgozott form és egyebeket be lehet itt mutatni.
-
-\subsection{A weboldal telepítésének CI/CD folyamata}
-
-GitHub Actions a smoke tesztekre, workflowk, a deploymentek. Értsd itt: S3 telepítés.
-
-\section{Média erőforrások objektumtárolói}
-
-Hogy lettek felkonfigurálva és miért az egyes S3 bucket-ok (bucket policy, CORS policy).
-
-\section{Elemental MediaLive és MediaPackage a live streamingben}
-
-Az Elemental stack részeinek felkonfigurálása, a MediaLive channel és a MediaPackage channel felépítése, a MediaPackage endpoint konfigurálása. Miként kerül kiszolgálásra, melyiket mire használom. OBS bekötésének módja.
-
-\chapter{Szerver oldali folyamatok implementációi}
-
-\section{A virtuális privát felhő komponensei}
-
-A VPC-beli (Virtual Private Cloud) subnetek, a security groupok, route táblák. A biztonság vizsgálata.
-
-\section{A Node.js alkalmazás fejlesztése}
-
-Fejlesztés részletei. Kitérve arra, hogy miképp könnyíti a munkát a Prisma, milyen egyéb szolgáltatások kerültek be, mi a felépítése a reponak, miért választottam ezt a stacket. S3 bucketba való mentése a videónak egy érdekes rész. Itt lehet szó az adatbázisbeli entitásokról is.
-
-\section{A konténerizált környezet}
-
-Leírás, hogy miért választottam a konténerizált környezetet, a konténerizálás előnyeit, hátrányait. Hogy használható ki a legjobban a konténerizáció az Application Load Balancer-rel együtt. Miképp kapcsoltam ezt a kettőt össze (ECS service, ALB).
-
-\subsection{A Node.js szerveralkalmazás ECS-en}
-
-Az ECS orkesztrációs toolsetjének kialakítása, a konténer rétegződés felépítése ECS-ben, a konténer registry (ECR) bekötése. Környezeti változók, portok, ALB-re való kötése. Miből állt a dockerizálás nekem (Dockerfile, registry, image build, push, networking).
-
-Milyen IAM role-okat kellett feltenni rá, mikkel kommunikál kifelé, mi indokolta, hogy publikus subnetbe kerüljön. Hogy hív meg más külső rácsatlakozó erőforrásokat (S3 bucket, RDS instance, Lambda függvény, MediaLive channel).
-
-\subsection{A szerveralkalmazás CI/CD folyamatai}
-
-GitHub Actions a smoke tesztre, a deploymentre: Docker build és ECR-be telepítés.
-
-\section{Elemental MediaConvert felhasználása}
-
-Az Elemental MediaConvert API használata a Lambdából, illetve hogy hogy hívódik meg a Lambda, milyen triggerrel, milyen környezeti változókkal, milyen IAM role-al. Hogy kellett felkonfigurálni a MediaConvert job, hogy kellett magát a Lambdát felkonfigolni, hogy tudja is hívni.
-
-\chapter{Tesztelés és mérés}
-
-\section{Az infrastruktúra terhelése}
-
-Szimpla load tesztelés összeállításáról fogok itt értekezni, és a mérési eredmények kiértékelése.
-
-\section{Népszerű szolgáltatók metrikái}
-
-Keresni kell cikkeket Netflix blogban vagy valahol arról, a népszerű szolgáltatók milyen SLA-val, milyen statisztikával dolgoznak.
-
-\chapter{Összegzés}
-
-Tanulságok, a rendszer működésének és fejlesztési élmények értékelése. Média streaming jövője saját meglátások szerint.
-
-\section{Továbbfejlesztés lehetőségei}
-
-Min lehetne javítani, mikroszolgáltatásos architektúra stb.
-
-\subsection{Vendor lock-in kezelése}
-
-Miként befolyásolja egy üzlet működését a vendor lock-in, és hogyan lehet ezt kezelni. Miképp lehetne a jövőben a vendor lock-in-t csökkenteni ebben a rendszerben.
-
-\section{Kitekintés: egyéb AWS szolgáltatások}
-
-Miért nem használtam az Aurorat RDS helyett, miért nem került sor Amplify Hosting alkalmazására a frontend és backend összekapcsolására és egy stackben való deployálására (skálázhatóságra való kiélezés miatt).
+TODO: Sok könnyen integrálható könyvtár, amelyek segítségével gyorsan és hatékonyan lehet webes felületeket fejleszteni: React Hook Forms, React Query.
