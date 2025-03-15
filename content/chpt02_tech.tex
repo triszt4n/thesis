@@ -1,6 +1,6 @@
 \chapter{Technológiai áttekintés}
 
-A videó egy multimédiás eszköz auditív és mozgó vizuális információ tárolására, visszajátszására. Fontos felhasználási területei a média és a szórakoztató ipar. Ebben a fejezetben azon technológiák kerülnek vizsgálatra, amelyek ismerete nélkülözhetetlen a videó streaming megértéséhez, valamint az streaming megvalósításához.
+A videó egy multimédiás eszköz auditív és mozgó vizuális információ tárolására, visszajátszására. Fontos felhasználási területei a bevezetésben is ismertetett média és a szórakoztató ipar. Ebben a fejezetben azon technológiák kerülnek vizsgálatra, amelyek ismerete nélkülözhetetlen a videó streaming megértéséhez, valamint a streaming megvalósításához.
 
 \section{A videó formátumai}
 
@@ -28,9 +28,11 @@ A szabványok konkrét megvalósításával (kodekek) nem foglalkozunk részlete
 
 \subsection{Hang kódolási módszerei}
 
-Hanganyag kódolására több elterjedt szabványt is Ilyen az MPEG Audio Layer III -- rövid nevén: MP3 -- is 1991-ből, ezt 1997-ben az Advanced Audio Coding (AAC) szabvány váltotta le. Ezen szabványok az MPEG által kerültek kifejlesztésre, valamint mindkettő veszteséges tömörítést alkalmaz, azaz a kódoláson és dekódoláson átesett hanganyag minősége nem lesz azonos az eredeti hanganyaggal.
+Hanganyag kódolására is több szabványt tudunk megvizsgálni. Ilyen az MPEG Audio Layer III -- rövid nevén: MP3 -- 1991-ből, ezt 1997-ben az Advanced Audio Coding (AAC) szabvány váltotta le. Ezen szabványok az MPEG által kerültek kifejlesztésre, valamint mindkettő veszteséges tömörítést alkalmaz, azaz a kódoláson és dekódoláson átesett hanganyag minősége nem lesz azonos az eredeti hanganyaggal.
 
-Egy másik, az előbbieknél jobb minőséget ígérő veszteséges tömörítéssel dolgozó kódolási szabvány Dolby AC-3 -- ismertebb nevén: Dolby Digital.
+Főleg a mozivilágban használt kódolás a Dolby AC-3  -- ismertebb nevén: Dolby Digital. Azonos bitrátánál is az előbbieknél jobb minőséget ígér. 2017-ben már lejárt a szabadalmi védelme, így azóta szabadon felhasználható. Egy másik, születése (2012) óta szabad felhasználású kódolás az Opus, amelyet a Skype és a Discord is használ VoIP alapú kommunikációra, és az összes eddig említett kódolásnál jobb minőséget produkál.
+
+Természetesen találkozhattunk tömörítetlen (pl.: WAV), illetve veszteségmentes kódolásokkal is (pl.: FLAC) is, azonban a streaming világában ezek nem használatosak, mivel a nagyobb fájlméretük meghaladná a sávszélesség és a tárhely korlátait. Az AC-3 és AAC szabványok közül szokás választani a videó streaming során, széles körben kompatibilisek mindenféle lejátszó eszközzel, míg az Opus még nem eléggé támogatott.
 
 \section{Videó streaming kiszolgálása}
 
@@ -52,7 +54,7 @@ A streamelést erősen befolyásoló tényező a hálózati feltételek változ�
 
 Az ABR technológiával a videóadatokat több különböző bitrátával kódoljuk a médiaszerveren, és a lejátszó alkalmazás a hálózati feltételeknek megfelelően választja ki a megfelelő bitrátájú videóadatokat a lejátszásra onnan.
 
-TODO: KÉSZíTS EGY ÁBRAJZATOT AZ ABR MŰKÖDÉSÉRŐL!
+TODO: KÉSZíTS EGY ÁBRÁT AZ ABR MŰKÖDÉSÉRŐL!
 
 \section{Videó streaming hálózati protokolljai}
 
