@@ -1,8 +1,10 @@
-\chapter{Technológiai áttekintés}
+\chapter{Elméleti háttér és irodalomkutatás}
 
-A videó egy multimédiás eszköz auditív és mozgó vizuális információ tárolására, visszajátszására. Fontos felhasználási területei a bevezetésben is ismertetett média és a szórakoztató ipar. Ebben a fejezetben azon technológiák kerülnek vizsgálatra, amelyek ismerete nélkülözhetetlen a videó streaming megértéséhez, valamint a streaming megvalósításához.
+Ebben a fejezetben kerül bemutatásra minden jelentősebb alapfogalom,  valamint az azokhoz szorosan kapcsolódó technikák és folyamatok, amelyek ismerete nélkülözhetetlen a videó streaming megértéséhez, illetve annak szoftveres megvalósításához.
 
 \section{A videó formátumai}
+
+A videó egy multimédiás eszköz auditív és mozgó vizuális információ tárolására, visszajátszására. Fontos felhasználási területei a bevezetésben is ismertetett média és a szórakoztató ipar.
 
 Egy videó tartalmazhat különböző nyelvű hanganyagokat, mozgóképet, és egyéb metaadatokat -- például feliratokat és miniatűr állóképeket -- mind egy fájlban. Ezek közös tárolására konténerformátumokat alkalmazunk, amelyek megadják, az egyes adatfolyamok hogyan, milyen paraméterekkel, kódolással, tömörítéssel kerüljenek tárolásra, és hogyan kerülhetnek majd lejátszásra.
 
@@ -50,15 +52,15 @@ Különbözik mindkettőnél, hogy milyen fizikai infrastrukturális tervezést 
 
 \subsection{Adaptive Bitrate Streaming}
 
-A streamelést erősen befolyásoló tényező a hálózati feltételek változása, amelyek a videólejátszás minőségét és késleltetését is befolyásolják. Az Adaptive Bitrate Streaming (ABR) technológiával a videólejátszó alkalmazás képes a hálózati feltételek változására reagálni.
+A streamelést erősen befolyásoló tényező a hálózati feltételek változása, amelyek a videólejátszás minőségét és késleltetését is befolyásolják. Az Adaptive Bitrate Streaming (ABR) egy a hálózati kiszolgálás során alkalmazott technika, amely megoldást jelenthet erre a problémára.  videólejátszó alkalmazást .
 
-Az ABR technológiával a videóadatokat több különböző bitrátával kódoljuk a médiaszerveren, és a lejátszó alkalmazás a hálózati feltételeknek megfelelően választja ki a megfelelő bitrátájú videóadatokat a lejátszásra onnan.
+Az ABR során a forrásvideót több különböző bitrátával dolgozó kodekekkel és különböző felbontással kódoljuk a médiaszerveren, majd lejátszáskor a lejátszó alkalmazás a hálózati feltételek változására reagálva, valamint a fogadó fél számítási kapacitásától függően valós időben választja ki a megfelelő vi\-de\-ó\-strea\-met ezek közül.
 
 TODO: KÉSZíTS EGY ÁBRÁT AZ ABR MŰKÖDÉSÉRŐL!
 
 \section{Videó streaming hálózati protokolljai}
 
-Videó streamelésére -- másképp fogalmazva: valamely korábban ismertetett formátumban tárolt videó adatfolyamba való illesztésére különböző hálózati protokollok palettája áll rendelkezésünkre.\cite{Wettl04}
+Videó streamelésére -- másképp fogalmazva: valamely korábban ismertetett formátumban tárolt videó adatfolyamba való illesztésére különböző hálózati protokollok palettája áll rendelkezésünkre.
 
 Ez a szekció az alkalmazás rétegben alkalmazott protokollok (Layer 7) közül vizsgál meg néhány streaming használatára elterjedt protokollt, megemlítve, milyen szállítási rétegű protokollokkal (Layer 4) tudnak együttműködni.
 
@@ -78,58 +80,4 @@ TODO
 
 A források és a streamet figyelők számának kardinalitása szempontjából ez a protokoll a legjobb választás, amennyiben a felhasználási célja az, hogy a felhasználók közvetlenül egymással kommunikálhassanak, és nem szükséges közbeiktatni egy központi médiaszervert. 
 
-TODO: ez bullshitnak hangzik!
-
-\section{Az FFMpeg szoftvercsomag}
-
-TODO
-
-\section{Amazon Web Services}
-
-Bevezető az AWS szolgáltatások világába, röviden bemutatom, hogy épül fel egy AWS account, milyen szolgáltatáscsoportokat ajánl, mivel lehet korlátozni a hozzáférést, az erőforrások akár egymás közötti kommunikációjá irányítani.
-
-\subsection{AWS Elemental}
-
-TODO: MediaConvert
-
-TODO: MediaLive
-
-TODO: MediaPackage
-
-\subsection{Egyéb megoldások videó streamingre AWS-en}
-
-IVS, és saját konténerizált ffmpeg szerver miért nem.
-
-\subsection{Amazon CloudFront}
-
-Korábbi szekcióban már említettük a CDN-eket, mint a video-on-demand alapú streaming szolgáltatások egyik kulcsfontosságú elemeit. Az Amazon CloudFront egy globális CDN, amely lehetővé teszi a felhasználók számára, hogy a tartalmat hozzájuk közelebbi szervereken tárolt cache-ből töltsék le, ezáltal csökkentve a késleltetést, csökkentve a központi szerverek terhelését, és növelve a letöltési sebességet.
-
-\subsection{Amazon ECS}
-
-TODO
-
-\subsection{Amazon RDS}
-
-TODO
-
-\subsection{Orkesztrációs szolgáltatások}
-
-Lambda és EventBridge, IAM role-ok, hálózati infra.
-
-\section{A webes komponensek technológiái}
-
-Ebben a részben a konkrét AWS-beli PaaS és FaaS szolgáltatásokon futó több rétegű appok választott technológiáit mutatom be: Node.js, React, Prisma, Postgres.
-
-\subsection{TypeScript és JavaScript nyelvek}
-
-Miért választottam a TypeScriptet, miért jobb a JavaScriptnél, felhasználása a JavaScriptnek a Lambda és Cloudfront Function-ökben.
-
-\subsection{Node.js ökoszisztéma}
-
-Node.js futtatókörnyezet, NestJS keretrendszer, Prisma ORM, AWS SDK.
-
-\subsection{React}
-
-TODO: Mire jó a React: Statikus oldalak generálása (SSG), egyszerűbb JavaScript egy helyen kezelése, gyors build toolok, erre ott a Vite.js.
-
-TODO: Sok könnyen integrálható könyvtár, amelyek segítségével gyorsan és hatékonyan lehet webes felületeket fejleszteni: React Hook Forms, React Query.
+TODO: még egy keveset ide, hogy lássa az olvasó később, hogy miért nem lesz releváns a mi választásunkban az implementáció során.

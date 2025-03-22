@@ -44,20 +44,16 @@ Ezek után a PDF-ábrát ugyanúgy lehet a dokumentumba beilleszteni, mint a PNG
 
 A képek beillesztésére \az+\refstruc{sec:LatexTools}ben mutattunk be példát (\refstruc{fig:TeXstudio}). Az előző mondatban egyúttal az automatikusan feloldódó ábrahivatkozásra is láthatunk példát. Több képfájlt is beilleszthetünk egyetlen ábrába. Az egyes képek közötti horizontális és vertikális margót metrikusan szabályozhatjuk (\refstruc{fig:HVSpaces}). Az ábrák elhelyezését számtalan tipográfiai szabály egyidejű teljesítésével a fordító maga végzi, a dokumentum írója csak preferenciáit jelezheti a fordító felé (olykor ez bosszúságot is okozhat, ilyenkor pl. a kép méretével lehet játszani).
 
-\begin{figure}[!ht]
+\begin{figure}[ht]
 	\centering
-	\includegraphics[width=67mm, keepaspectratio]{figures/TeXstudio.png}\hspace{1cm}
-	\includegraphics[width=67mm, keepaspectratio]{figures/TeXstudio.png}\\\vspace{5mm}
-	\includegraphics[width=67mm, keepaspectratio]{figures/TeXstudio.png}\hspace{1cm}
-	\includegraphics[width=67mm, keepaspectratio]{figures/TeXstudio.png}
-	\caption{Több képfájl beillesztése esetén térközöket is érdemes használni.}
+	\includegraphics[width=120mm, keepaspectratio]{figures/TeXstudio.png}
+	\caption{Ez egy felirat}
 	\label{fig:HVSpaces}
 \end{figure}
 
 A táblázatok használatára \aref{tab:TabularExample}~táblázat mutat példát. A táblázatok formázásához hasznos tanácsokat találunk a \verb+booktabs+ csomag dokumentációjában.
 
 \begin{table}[ht]
-	\footnotesize
 	\centering
 	\begin{tabular}{ l c c }
 		\toprule
