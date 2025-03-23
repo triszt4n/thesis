@@ -1,13 +1,25 @@
 \chapter{Követelmények}
 
-TODO: Mire kell képes legyen egy Youtube szintű app, erről rövid duma.
+Egy nagyszabású, YouTube- vagy Netflix-szintű webes videóstreaming-szolgáltatás megvalósítása rendkívül összetett feladat, amely köré így kiterjedt technikai és üzleti követelményrendszert tudunk kialakítani. Egy ilyen rendszernek kezdetben biztosítania kell az alapvető funkciókat, amelyet hétköznapi webalkalmazások is megvalósítanak, mint például a videók lejátszása során felmerülő interakciók kezelése. Azonban ahogy a platformunk népszerűsége növekedhet, újabb és újabb infrastrukturális igények merülhetnek fel: ezek teszik ki a nem funkcionális követelményeket, amik kiterjednek például a tartalomterjesztés minőségére, a biztonsági felkészültségére a webalkalmazásnak.
 
-
+A következőkben részletezem azokat a követelményeket, elvárásokat, amelyeket szem előtt tartottam a streaming szolgáltatás megtervezésekor és megvalósításakor.
 
 \section{Funkcionális követelmények}
 
-TODO: részleteiben
+A streaming szolgáltatást alapvetően egy központosított kliensoldali webes felületen keresztül lehet elérni, azon keresztül tudják adminisztrátorok kezelni a tartalmat. Ennek a közvetlen frontoldali webes felületnek és a szolgáltatásainak a követelményekeit érdemesnek tartottam csoportokba szedni:
+
+\begin{itemize}
+  \item \textbf{Felhasználókezelésre vonatkozó funkciócsoport}: TODO folyószöveg
+  \item \textbf{Videóprojektek kezelésére vonatkozó funkciócsoport}: TODO folyószöveg
+  \item \textbf{Élő közvetítés kezelésére vonatkozó funkciócsoport}: TODO folyószöveg
+\end{itemize}
 
 \section{Nem funkcionális követelmények}
 
-TODO: a rendszerrel szemben támasztott elvárások. Event driven architektúra (kiterjeszthetőség érdekében), skálázhatóság, biztonság, megbízhatóság.
+A rendszerrel szemben támasztott nem funkcionális követelmények megállapításakor igyekeztem olyan dolgokra a hangsúlyt tenni, amelyek inkább számomra jelentenek kihívást, mivel nem terveztem a webalkalmazást úgy elkészíteni, hogy az valódi használatra készüljön -- azaz valódi haszna legyen és legyenek élő felhasználói a nagyvilágból, csupán a kísérletnek volt része. Ezeket az elvárásokat a következőkben állapítottam meg:
+
+\begin{itemize}
+  \item \textbf{Biztonság}: TODO folyószöveg, VPC, WAF, HTTPS, JWT
+  \item \textbf{Hordozhatóság és könnyű karbantarthatóság}: TODO folyószöveg, konténerizáció, CI/CD, frissítések, kódba zárt konfiguráció, eseményvezérelt architektúra a webalkalmazás köré
+  \item \textbf{Elaszticitás}: TODO folyószöveg, konténerizáció, auto-scaling, CDN
+\end{itemize}

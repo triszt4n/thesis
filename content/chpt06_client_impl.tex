@@ -1,25 +1,27 @@
-\chapter{Kliens közeli komponensek implementációja}
+\chapter{Kliensközeli komponensek implementációja}
+
+A következőkben részletezem a klienseket kiszolgáló infrastrukturális komponensek konfigurációját, valamint a legfelső megjelenítési réteg szoftveres komponenseinek implementációját. A forgalom először a CDN-nel ütközik, amelyen keresztül lesznek elérhetőek a statikus weboldal erőforrásai, valamint a média-erőforrások csatornái.
 
 \section{A CDN és a hozzácsatolt erőforrások}
 
-A CDN és az originjeinek tárgyalása, melyik origin mire való. VPC Origin tárgyalása, annak haszna. A WAF szerepe, a felkapcsolt cert és WAF web ACL szerepe.
+TODO: A CDN és az originjeinek tárgyalása, melyik origin mire való. VPC Origin tárgyalása, annak haszna. A WAF szerepe, a felkapcsolt cert és WAF web ACL szerepe.
 
 \section{A statikus weboldal}
 
-Az S3 bucketee. A statikus website kiszolgálásának módja.
+TODO: Az S3 bucket. A statikus website kiszolgálásának módja.
 
 \subsection{A React alkalmazás fejlesztése}
 
-Fejlesztés részletei. Nem annyira lényeges most ebben a dolgozatban, de néhány szép kihívást jelentő kidolgozott form és egyebeket be lehet itt mutatni.
+TODO: ejlesztés részletei. Nem annyira lényeges most ebben a dolgozatban, de néhány szép kihívást jelentő kidolgozott form és egyebeket be lehet itt mutatni.
 
 \subsection{A weboldal telepítésének CI/CD folyamata}
 
-GitHub Actions a smoke tesztekre, workflowk, a deploymentek. Értsd itt: S3 telepítés.
+TODO: GitHub Actions a smoke tesztekre, workflowk, a deploymentek. Értsd itt: S3 telepítés.
 
 \section{Média erőforrások objektumtárolói}
 
-Hogy lettek felkonfigurálva és miért az egyes S3 bucket-ok (bucket policy, CORS policy).
+TODO: Hogy lettek felkonfigurálva és miért az egyes S3 bucket-ok (bucket policy, CORS policy).
 
 \section{Elemental MediaLive és MediaPackage a live streamingben}
 
-Az Elemental stack részeinek felkonfigurálása, a MediaLive channel és a MediaPackage channel felépítése, a MediaPackage endpoint konfigurálása. Miként kerül kiszolgálásra, melyiket mire használom. OBS bekötésének módja.
+TODO: Az Elemental stack részeinek felkonfigurálása, a MediaLive channel és a MediaPackage channel felépítése, a MediaPackage endpoint konfigurálása. Miként kerül kiszolgálásra, melyiket mire használom. OBS bekötésének módja.

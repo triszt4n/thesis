@@ -1,6 +1,6 @@
 \chapter{Elméleti háttér és irodalomkutatás}
 
-Ebben a fejezetben kerül bemutatásra minden jelentősebb alapfogalom,  valamint az azokhoz szorosan kapcsolódó technikák és folyamatok, amelyek ismerete nélkülözhetetlen a videó streaming megértéséhez, illetve annak szoftveres megvalósításához.
+Ebben a fejezetben kerül bemutatásra minden jelentősebb alapfogalom, valamint az azokhoz szorosan kapcsolódó technikák és folyamatok, amelyek ismerete nélkülözhetetlen a videó streaming megértéséhez, illetve annak szoftveres megvalósításához.
 
 \section{A videó formátumai}
 
@@ -67,7 +67,21 @@ Az ABR során a forrásvideót több különböző bitrátával dolgozó kodekek
 
 Videó streamelésére -- másképp fogalmazva: valamely korábban ismertetett formátumban tárolt videó adatfolyamba való illesztésére különböző hálózati protokollok palettája áll rendelkezésünkre.
 
-Ez a szekció az alkalmazás rétegben alkalmazott protokollok (Layer 7) közül vizsgál meg néhány streaming használatára elterjedt protokollt, megemlítve, milyen szállítási rétegű protokollokkal (Layer 4) tudnak együttműködni.
+Néhány ismertebb streaming használatára kitalált protokoll létrejöttük időrendjében \cite{StreamingHistory}:
+
+\begin{itemize}
+	\setlength{\itemsep}{1pt}
+  \setlength{\parskip}{0pt}
+  \setlength{\parsep}{0pt}
+	\item Real-Time Messaging Protocol (RTMP, 1996)
+	\item Microsoft Smooth Streaming (MSS, 2008)
+	\item Adobe's HTTP Dynamic Streaming (HDS, 2009)
+	\item HTTP Live Streaming (HLS, 2009)
+	\item WebRTC (2011)
+	\item Dynamic Adaptive Streaming over HTTP (DASH, 2012)
+\end{itemize}
+
+Jelen alfejezet ezen alkalmazásrétegben alkalmazott protokollok (Layer 7) közül vizsgálja meg a legelterjedtebb protokollokat, megemlítve, milyen szállítási rétegű protokollokkal (Layer 4) tudnak együttműködni.
 
 \subsection{Real-Time Messaging Protocol}
 
@@ -77,9 +91,13 @@ TODO
 
 TODO
 
+A HLS eredetileg az Apple jogvédett kereskedelmi protokolljaként indult, azóta viszont már szabad felhasználásúvá vált. Jórészt Apple termékek továbbra is van, hogy csak ezt a protokollt támogatják.
+
+A HLS egy olyan protokoll, amely magában hordozza az ABR implementációját is, kliensoldalon modern Media Source Extensions funkcionalitást támogató böngészőkben elterjedt használni a \emph{hls.js}\footnote{\url{https://github.com/video-dev/hls.js}} nevű JavaScript-könyvtárat, amely implementálja a HLS protokollt.
+
 \subsection{Dynamic Adaptive Streaming over HTTP}
 
-TODO
+A HLS-hez hasonló elvekkel dolgozik a DASH is, illetve ez is egy ABR technológiájú protokoll. A DASH implementációjára JavaScript motorral rendelkező kliensekben -- böngészők, mobiltelefonok stb. -- a \emph{dash.js}\footnote{\url{https://dashjs.org/}} könyvtárat használják legtöbb esetben.
 
 \subsection{WebRTC}
 
