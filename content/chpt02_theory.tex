@@ -52,11 +52,16 @@ Különbözik mindkettőnél, hogy milyen fizikai infrastrukturális tervezést 
 
 \subsection{Adaptive Bitrate Streaming}
 
-A streamelést erősen befolyásoló tényező a hálózati feltételek változása, amelyek a videólejátszás minőségét és késleltetését is befolyásolják. Az Adaptive Bitrate Streaming (ABR) egy a hálózati kiszolgálás során alkalmazott technika, amely megoldást jelenthet erre a problémára.  videólejátszó alkalmazást .
+A streamelést erősen befolyásoló tényező a hálózati feltételek változása, amelyek a videólejátszás minőségét és késleltetését is befolyásolják. Az Adaptive Bitrate Streaming (ABR) egy a hálózati kiszolgálás során alkalmazott technika, amely megoldást jelenthet erre a problémára.
 
-Az ABR során a forrásvideót több különböző bitrátával dolgozó kodekekkel és különböző felbontással kódoljuk a médiaszerveren, majd lejátszáskor a lejátszó alkalmazás a hálózati feltételek változására reagálva, valamint a fogadó fél számítási kapacitásától függően valós időben választja ki a megfelelő vi\-de\-ó\-strea\-met ezek közül.
+Az ABR során a forrásvideót több különböző bitrátával dolgozó kodekekkel és különböző felbontással kódoljuk a médiaszerveren, majd lejátszáskor a lejátszó alkalmazás a hálózati feltételek változására reagálva, valamint a fogadó fél számítási kapacitásától függően valós időben választja ki a megfelelő vi\-de\-ó\-strea\-met ezek közül, onnan válogatja a packeteket (\refstruc{fig:ABR}).
 
-TODO: KÉSZíTS EGY ÁBRÁT AZ ABR MŰKÖDÉSÉRŐL!
+\begin{figure}[ht]
+	\centering
+	\includegraphics[width=140mm, keepaspectratio]{figures/dipterv_abr.png}
+	\caption{Az Adaptive Bitrate Streaming működése.}
+	\label{fig:ABR}
+\end{figure}
 
 \section{Videó streaming hálózati protokolljai}
 
