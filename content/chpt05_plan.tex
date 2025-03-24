@@ -1,19 +1,10 @@
 \chapter{A tervezett architektúra}
 
-TODO: Gyors bevezető arról, hogy külön AWS accountba dolgoztam és felügyeltem a költségeim.
+TODO: mi az a logikai és fizikai nézete egy architekturális tervnek.
 
 \section{Logikai felépítés}
 
-TODO: High-level leírása az AWS accounton belüli/datacenteren belüli hálózati kommunikáció rétegeinek.
-
-A rendszer egyszerűsített felülnézetét, az AWS-erőforrások összeköttetését jól összefoglalja az \refstruc{fig:architect}.
-
-\begin{figure}[ht]
-	\centering
-	\includegraphics[width=155mm, keepaspectratio]{figures/dipterv_architect.png}
-	\caption{Az AWS-fiók erőforrásainak logikai kapcsolata.}
-	\label{fig:architect}
-\end{figure}
+TODO: High-level leírása NEM AWS specifikusan a rendszer logikai felépítésének, rétegződésnek tekintettel főleg a követeményrendszert igazolva előző fejezetből.
 
 \subsection{Összehasonlítás egy hasonló rendszerrel}
 
@@ -26,7 +17,22 @@ A tervek igazolásához segítségül kerestem az interneten nyílt forráskód�
 	\label{fig:gocast}
 \end{figure}
 
-\section{Video-on-Demand kiszolgálás folyamata}
+\section{Fizikai felépítés AWS-re specializáltan}
+
+A rendszert az átlátható kezelés érdekében az AWS-felhőben egy teljesen erre külön készített AWS-fiókba helyeztem, így terveztem meg az architektúrát is. Az AWS-fiókban a következő logikai felépítést valósítottam meg:
+
+TODO: High-level leírása az AWS accounton belüli/datacenteren belüli hálózati kommunikáció rétegeinek.
+
+A rendszer egyszerűsített fizikai felülnézetét, az AWS-erőforrások összeköttetését jól összefoglalja az \refstruc{fig:architect}.
+
+\begin{figure}[ht]
+	\centering
+	\includegraphics[width=155mm, keepaspectratio]{figures/dipterv_architect.png}
+	\caption{Az AWS-fiók erőforrásainak logikai kapcsolata.}
+	\label{fig:architect}
+\end{figure}
+
+\subsection{Video-on-Demand kiszolgálás folyamata}
 
 TODO: High-level leírása a VoD kiszolgálás folyamatának, megemlítve, melyik választott szolgáltatások vesznek részt ebben.
 
@@ -51,7 +57,7 @@ TODO: High-level leírása a VoD kiszolgálás folyamatának, megemlítve, melyi
 	\label{fig:vod3}
 \end{figure}
 
-\section{Live streaming folyamata}
+\subsection{Live streaming folyamata}
 
 TODO: High-level leírása a live streaming folyamatának, megemlítve, melyik választott szolgáltatások vesznek részt ebben.
 
@@ -72,3 +78,7 @@ TODO: High-level leírása a live streaming folyamatának, megemlítve, melyik v
 \section{Konfigurációmenedzsment}
 
 TODO: Terraform választásának indoklása. Kialakított Terragrunt module rendszer. GitHub actions a Terraform tervek előnézetére, OIDC felállítása az AWS role felvételére.
+
+\section{A projekt felépítése}
+
+TODO: monorepo bemutatása, VSCode projekt.
