@@ -1,10 +1,21 @@
-\chapter{A tervezett felhőarchitektúra}
+\chapter{A tervezett architektúra}
 
 TODO: Gyors bevezető arról, hogy külön AWS accountba dolgoztam és felügyeltem a költségeim.
 
 \section{Logikai felépítés}
 
 TODO: High-level leírása az AWS accounton belüli/datacenteren belüli hálózati kommunikáció rétegeinek.
+
+\subsection{Összehasonlítás egy hasonló rendszerrel}
+
+A tervek igazolásához segítségül kerestem az interneten nyílt forráskódú hasonló megoldásokat is. Megtaláltam a Technische Universität München (TUM) egy hallgatói csoportja, a TUM-Dev által fejlesztett az egyetemen is használt VoD és live streaming szolgáltatását, a GoCastot\footnote{\url{https://github.com/TUM-Dev/gocast}}. Ez a rendszer önállóan hosztolható szoftvereket komponál össze, nem felhőnatív. A rendszerben hasonló absztrakt terveket lehet megfigyelni az én megoldásaimhoz (\refstruc{fig:gocast}), ugyanígy HLS-sel szolgálják ki a tartalmakat (lásd \emph{TUM-Live Edge} példányok), viszont a live streamingre saját több portos workereket alkalmaznak (lásd \emph{TUM-Live-Worker} példányok), lehetőség ad viszont saját streamerből RTMP-n keresztül feltölteni élő közvetítést, ahogy én is megvalósítom a saját megoldásomban. Külön mikroszolgáltatás biztosítja a live és VOD streamingen kívüli funkcionalitásokat, a TUM-Live. Ez a megoldás nem teszi lehetővé, hogy a rendszeren kívül készült videót lehessen feltölteni és VOD-ként elérhetővé tenni rajta keresztül.
+
+\begin{figure}[ht]
+	\centering
+	\includegraphics[width=140mm, keepaspectratio]{figures/gocast.png}
+	\caption{A GoCast architektúrája a dokumentációból.}
+	\label{fig:gocast}
+\end{figure}
 
 \section{Video-on-Demand kiszolgálás folyamata}
 
