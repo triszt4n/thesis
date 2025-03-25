@@ -12,17 +12,18 @@ A streaming szolgáltatást alapvetően egy központosított kliensoldali webes 
   \item Felhasználókezelésre vonatkozó funkciócsoport
         \begin{itemize}
           \item Habár a videók megtekintéséhez nincs szükség felhasználókezelésre és bejelentkezésre, viszont a videók kezeléséhez szükséges megvalósítani a felhasználók azonosítását és jogosultságkezelését.
-          \item A felhasználók AuthSCH segítségével tudnak bejelentkezni a rendszer ``stúdió'' nevezetű aloldalára, ahol a rendszer azonosítja őket AuthSCH-s profiljuk alapján, automatikusan jön létre felhasználói fiókjuk, regisztrációra külön nincs szükség.
+          \item A felhasználók AuthSCH\footnote{\url{https://vik.wiki/AuthSCH}} segítségével tudnak bejelentkezni a rendszer ``stúdió'' nevezetű aloldalára, ahol a rendszer azonosítja őket AuthSCH-s profiljuk alapján, automatikusan jön létre felhasználói fiókjuk, regisztrációra külön nincs szükség.
           \item A felhasználók közötti különbséget a rendszerben adminisztrátorok és normál felhasználók között teszem meg, az előbbieknek jogosultságuk van a videók feltöltésére és kezelésére, az utóbbiaknak csupán bejelentkezésre későbbi adminisztrátorrá válásra, amennyiben másik adminisztrátor úgy dönt.
         \end{itemize}
 
   \item Videóprojektek kezelésére vonatkozó funkciócsoport
         \begin{itemize}
-          \item Az adminisztrátorok a ``stúdió'' aloldalon tudnak új videóprojekteket létrehozni, amelyekhez a rendszer automatikusan generál egy egyedi azonosítót, amelyet a videóprojekt URL-jében is használ.
+          \item Az adminisztrátorok a ``stúdió'' aloldalon tudnak új videóprojekteket létrehozni, amelyekhez a rendszer automatikusan generál egy egyedi azonosítót.
           \item Egy videóprojekt létrehozása után tudunk a videókhoz tartozó metaadatokat adni, azokon módosítani, mint például a cím, leírás, borítókép, kategória, résztvevő stábtagok.
           \item A videóprojektben lehetőség van egy darab MP4 konténerformátumú videó feltöltésére.
           \item Van lehetőség a videóprojekt teljes törlésére.
           \item A feltöltés után a felhasználói felület visszajelzést kell adjon arról, hol tart a videó feltöltési folyamata, illetve a videókonvertálás folyamata a hálózati adatfolyamra való felkészítéshez.
+          \item A ``stúdión'' kívüli oldalon a videóprojektek listázva vannak, ahol a nézők megtekinthetik a videóprojektek konkrét videóit stream formájában.
         \end{itemize}
 
   \item Élő közvetítés kezelésére vonatkozó funkciócsoport
