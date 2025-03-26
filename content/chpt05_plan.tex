@@ -131,7 +131,7 @@ Hogy az AWS-fiók erőforrásaihoz hozzáférést kaphasson a munkafolyamat is, 
 
 A konfigurációmenedzsment részeként még a változtatások hibamentes élesítése érdekében statikus ellenőrzést terveztem bevezetni hasonlóan GitHub Action munkafolyamatokból a React-kód és a szerveralkalmazás Node.js-kódjára is.
 
-A szerveralkalmazás egységként való kezelése érdekében és a könnyű telepíthetőségért -- ahogy ezt a nem funkcionális követelmények is megkívánták -- konténerizálni terveztem a Node.js-szerveralkalmazást Docker-konténerbe való komponálással, a buildelési folyamatot Dockerfile-lal kívántam megvalósítani hozzá. GitHub Action került alkalmazásra az buildelt Docker-kép ECR-be való automatizált feltöltésére (\refstruc{fig:ecr}\footnote{A kép forrása: \url{https://docs.aws.amazon.com/prescriptive-guidance/latest/patterns/build-and-push-docker-images-to-amazon-ecr-using-github-actions-and-terraform.html}}), a React-kód buildelésére és S3-vödörbe való feltöltésére.
+A szerveralkalmazás egységként való kezelése érdekében és a könnyű telepíthetőségért -- ahogy ezt a nem funkcionális követelmények is megkívánták -- konténerizálni terveztem a Node.js-szerveralkalmazást Docker-konténerbe való komponálással, a buildelési folyamatot Dockerfile-lal kívántam megvalósítani hozzá. GitHub Action került alkalmazásra az buildelt Docker-kép ECR-be való automatizált feltöltésére (\refstruc{fig:ecr}), a React-kód buildelésére és S3-vödörbe való feltöltésére.
 
 \begin{figure}[ht]
 	\centering

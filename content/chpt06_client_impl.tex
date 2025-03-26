@@ -8,14 +8,14 @@ TODO: A CDN és az originjeinek tárgyalása, melyik origin mire való. VPC Orig
 
 \begin{figure}[ht]
   \centering
-  \includegraphics[width=140mm, keepaspectratio]{figures/distro_main.png}
+  \includegraphics[width=150mm, keepaspectratio]{figures/distro_main.png}
   \caption{Képernyőkép a disztribúció alapvető beállításairól az AWS-konzolon.}
   \label{fig:distro}
 \end{figure}
 
 \begin{figure}[ht]
   \centering
-  \includegraphics[width=140mm, keepaspectratio]{figures/distro_behav.png}
+  \includegraphics[width=150mm, keepaspectratio]{figures/distro_behav.png}
   \caption{Képernyőkép a különböző útvonalakra illesztett cache behavior-ökről.}
   \label{fig:behav}
 \end{figure}
@@ -47,10 +47,11 @@ TODO: Az S3 bucket. A statikus website kiszolgálásának módja.
   style=js,
   basicstyle=\fontsize{10}{12}\ttfamily
 ]
-const spaInternalRoutingPrefixes = ["/videos", "/live", "/events", "/members", "/courses", "/about", "/studio", "/login"];
+const spaInternalRoutingPrefixes = ["/videos", "/live", "/events", "/members", 
+  "/courses", "/about", "/studio", "/login"];
 function handler(event) {
   const request = event.request;
-  if (spaInternalRoutingPrefixes.some((prefix) => request.uri.startsWith(prefix))) {
+  if (spaInternalRoutingPrefixes.some((pref) => request.uri.startsWith(pref))) {
     request.uri = "/";
   }
   return request;
