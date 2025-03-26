@@ -6,9 +6,103 @@ A következőkben részletezem a klienseket kiszolgáló infrastrukturális komp
 
 TODO: A CDN és az originjeinek tárgyalása, melyik origin mire való. VPC Origin tárgyalása, annak haszna. A WAF szerepe, a felkapcsolt cert és WAF web ACL szerepe.
 
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=140mm, keepaspectratio]{figures/distro_main.png}
+  \caption{Képernyőkép a disztribúció alapvető beállításairól az AWS-konzolon.}
+  \label{fig:distro}
+\end{figure}
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=140mm, keepaspectratio]{figures/distro_behav.png}
+  \caption{Képernyőkép a különböző útvonalakra illesztett cache behavior-ökről.}
+  \label{fig:behav}
+\end{figure}
+
+TODO: ez meg az.
+
+\begin{lstlisting}[
+  caption=url-rewrite.js fájl tartalma.,
+  label=lst:urlrewrite,
+  basicstyle=\fontsize{10}{12}\ttfamily,
+  style=js,
+]
+function handler(event) {
+  const request = event.request;
+  ["/media-assets/", "/media-live/"].forEach((prefix) => {
+    request.uri = request.uri.replace(prefix, "/");
+  });
+  return request;
+}
+\end{lstlisting}
+
 \section{A statikus weboldal}
 
 TODO: Az S3 bucket. A statikus website kiszolgálásának módja.
+
+\begin{lstlisting}[
+  caption=frontend-request-default.js fájl tartalma.,
+  label=lst:frontend,
+  style=js,
+  basicstyle=\fontsize{10}{12}\ttfamily
+]
+const spaInternalRoutingPrefixes = ["/videos", "/live", "/events", "/members", "/courses", "/about", "/studio", "/login"];
+function handler(event) {
+  const request = event.request;
+  if (spaInternalRoutingPrefixes.some((prefix) => request.uri.startsWith(prefix))) {
+    request.uri = "/";
+  }
+  return request;
+}
+\end{lstlisting}
+
+\begin{lstlisting}[
+  caption=API stack moduljának felparaméterezése a main.tf fájlban.,
+  label=lst:mainApi,
+  style=tf,
+  basicstyle=\fontsize{10}{12}\ttfamily
+]
+module "api" {
+  source = "./modules/api-stack"
+  environment = var.environment
+  vpc_id = module.vpc.vpc_id
+
+  alb_tg_port_mapping = 80
+  alb_secgroup_ids = [module.vpc.secgroups["streamzen-alb-sg"].id]
+  alb_subnet_ids = [module.vpc.subnets["streamzen-alb-1a"].id, module.vpc.subnets["streamzen-alb-1b"].id]
+  alb_internal = true # does not need to be internet-facing
+  db_secgroup_ids = [module.vpc.secgroups["streamzen-db-sg"].id]
+  db_subnet_ids = [module.vpc.subnets["streamzen-private-1a"].id, module.vpc.subnets["streamzen-private-1b"].id]
+  api_secgroup_ids = [module.vpc.secgroups["streamzen-api-sg"].id]
+  api_subnet_ids = [module.vpc.subnets["streamzen-public-1a"].id, module.vpc.subnets["streamzen-public-1b"].id]
+  api_subnet_route_table_ids = [for s in values(module.vpc.subnets) : s.route_table_id]
+
+  ecs = {
+    family_name = "streamzen-api"
+    port_mapping = 80
+    task_environment = {
+      AUTHSCH_CLIENT_ID = data.aws_ssm_parameter.these["authsch-client-id"].value
+      AUTHSCH_CLIENT_SECRET = data.aws_ssm_parameter.these["authsch-client-secret"].value
+      POSTGRES_USER = data.aws_ssm_parameter.these["db-username"].value
+      POSTGRES_PASSWORD = data.aws_ssm_parameter.these["db-password"].value
+      POSTGRES_PRISMA_URL = "postgresql://${data.aws_ssm_parameter.these["db-username"].value}:${data.aws_ssm_parameter.these["db-password"].value}@streamzen-rds-dev.czw6iqm8461h.eu-central-1.rds.amazonaws.com:5432/streamzen?schema=public"
+      FRONTEND_CALLBACK = "https://${var.domain_name}"
+      JWT_SECRET = data.aws_ssm_parameter.these["api-jwt-secret"].value
+      AWS_S3_REGION = var.region
+      AWS_S3_UPLOADED_BUCKET = "streamzen-uploaded-videos-${var.environment}-bucket"
+    }
+    memory = 512
+    cpu = 256
+    desired_task_count = var.enable_ecs ? 1 : 0
+  }
+  db = {
+    engine = "postgres"
+    engine_version = "16.4"
+    instance_class = "db.t3.micro"
+  }
+}
+\end{lstlisting}
 
 \subsection{A React alkalmazás fejlesztése}
 
@@ -22,6 +116,6 @@ TODO: GitHub Actions a smoke tesztekre, workflowk, a deploymentek. Értsd itt: S
 
 TODO: Hogy lettek felkonfigurálva és miért az egyes S3 bucket-ok (bucket policy, CORS policy).
 
-\section{Elemental MediaLive és MediaPackage a live streamingben}
+\section{A MediaLive és MediaPackage bekötése}
 
 TODO: Az Elemental stack részeinek felkonfigurálása, a MediaLive channel és a MediaPackage channel felépítése, a MediaPackage endpoint konfigurálása. Miként kerül kiszolgálásra, melyiket mire használom. OBS bekötésének módja.
