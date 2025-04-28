@@ -4,14 +4,7 @@ A következőkben részletezem a klienseket kiszolgáló infrastrukturális komp
 
 \section{A CDN és a hozzácsatolt erőforrások}
 
-TODO: A CDN és az originjeinek tárgyalása, melyik origin mire való. VPC Origin tárgyalása, annak haszna. A WAF szerepe, a felkapcsolt cert és WAF web ACL szerepe.
-
-\begin{figure}[ht]
-  \centering
-  \includegraphics[width=150mm, keepaspectratio]{figures/dipterv_client.png}
-  \caption{A kliensoldali architektúra részletezésebben.}
-  \label{fig:client}
-\end{figure}
+A CDN és az ahhoz tartozó erőforrások jelentik az első belépési pontját egy a rendszerhez intézett kérésnek. A rendszer és a CDN -- azaz a Cloudfront disztribúció -- számára a \verb|stream.trisz.hu| doménnevet rendeltem, amelyet a saját \verb|trisz.hu| doménem aldoménjeként jegyeztem be a Route 53 szolgáltatásban egy külön DNS zónaként. A böngészőből, azaz kívülről indított kérések minden esetben a DNS feloldásával kezdődnek, a Route 53 névszervereire oldódik fel, ezzel szerzi meg a kliens az IP-jét a Cloudfront edge szerverfarmjának. A Cloudfront disztribúcióknak különleges CNAME rekordjaik vannak, biztosítják hogy a kliens a legközelebbi edge szerver farmhoz csatlakozhasson, a konkrét működést az AWS elrejti a háztető alatt előlünk. A biztonságos, HTTPS-alapú szerver-kliens kommunikációt a Cloudfront disztribúcióhoz tartozó SSL-tanúsítvánnyal biztosítja a rendszer. A tanúsítványt az AWS Certificate Manager szolgáltatásban generáltam és kezeltem, amely automatikusan megújítja a lejáró tanúsítványokat (\refstruc{fig:distro}), amennyiben a domainhez tartozó DNS zónát a Route 53 szolgáltatásban -- azaz az AWS szolgáltatásában kezeljük.
 
 \begin{figure}[ht]
   \centering
@@ -20,16 +13,21 @@ TODO: A CDN és az originjeinek tárgyalása, melyik origin mire való. VPC Orig
   \label{fig:distro}
 \end{figure}
 
+A Cloudfront disztribúcióhoz hozzácsatoltam egy WAF ACL-t, amely a webalkalmazás szintű tűzfal szerepét tölti be. Minden kérést ez a Layer 7 rétegbeli logika szűri meg. Mivel nem volt élő forgalomra készítve az alkalmazás, így egy egyszerű AWS menedzselte szabályt tettem csak rá a WAF-ra demonstrációképp, amely megvizsgálja a kérést, hogy tartalmaz-e SQL injection támadást vagy egyéb megszokott webalkalmazásokra jellemző ilyen jellegű támadást (pl.: ismert kihasználható URI-útvonalak, Java webalkalmazásokra jellemző exploitok) -- a szabálycsoportot név szerint \verb|AWSManagedRulesKnownBadInputsRuleSet| név alatt tartja számon az AWS WAF.
+
 \begin{figure}[ht]
   \centering
-  \includegraphics[width=150mm, keepaspectratio]{figures/distro_behav.png}
-  \caption{Képernyőkép a különböző útvonalakra illesztett cache behavior-ökről.}
-  \label{fig:behav}
+  \includegraphics[width=150mm, keepaspectratio]{figures/dipterv_client.png}
+  \caption{A kliensoldali architektúra részletezésebben.}
+  \label{fig:client}
 \end{figure}
 
-TODO: ez meg az.
+Az edge-en kerül kiértékelésre a kapott kérés útvonala (angolul \emph{path}) alapján az, hogy melyik origin felé kell továbbítsa a disztribúció a kérést. A \refstruc{fig:client} adatközpont (angolul \emph{datacenter}) felőli oldalán láthatóak a nyilak végén, hogy milyen útvonalak alapján kerül a kérés melyik originhez. A kiértékelés során a disztribúció figyelembe veszi a szabályok sorrendjét, az szabályokban definiált útvonalmintákra mintaillesztés történik, és ha kapott útvonal illeszkedik a sorban következő mintára, ott véget és a kiértékelés. A disztribúcióhoz tartozó originok közül a legfontosabb a statikus weboldal, amely az S3-vödörben található, ez lett az alapértelmezett útvonal, ahova a kérések mennek, amennyiben egyik előbbi útvonalmintára se illeszkedik a kérésben található útvonal.
 
-\begin{lstlisting}[
+A Cloudfront biztosítja, hogy kis számításigényű logikát tudjuk még az edge rétegében futtatni a kéréseken, erre Cloudfront Function függvényeket alkalmaztam a MediaPackage csatorna előtt és a VOD-okat kiszolgáló S3 bucket (\verb|streamzen-static-assets-dev-bucket|) előtt. Ez a \verb|streamzen-url-rewrite-function| nevű kis függvény egy \verb|url-rewrite.js| nevű fájlt futtat (\ref{lst:urlrewrite}. kódrészlet). A függvény a kérés URI-ját vizsgálja, és ha a kérés a \verb|/media-assets/| vagy \verb|/media-live/| prefixekkel kezdődik, akkor eltávolítja ezeket a prefixeket, és a kérés így megtisztított URI-ját továbbítja a konkrét origin felé.
+
+\begin{minipage}{0.92\textwidth}
+  \begin{lstlisting}[
   caption=url-rewrite.js fájl tartalma.,
   label=lst:urlrewrite,
   basicstyle=\fontsize{10}{12}\ttfamily,
@@ -43,12 +41,45 @@ function handler(event) {
   return request;
 }
 \end{lstlisting}
+\end{minipage}
+
+A backend \verb|/api| útvonalon keresztül elérhető, a Cloudfrontból ide egy VPC Origin típusú módon lehet továbbítani a kérést, ezzel leegyszerűsítve a kérések hálózati biztonsági kezelését. Ennek az originnek a cache behaviorje nem igényli, hogy lehagyjuk a Host headert, ugyanis az ALB mögötte akár fel tudja használni a forgalomirányításhoz. A többi origin esetén a Host headert le kell hagyni a kérésekről (működésük ezt igényli az AWS dokumentáció alapján dolgozva), ezért is került használatra ezeken az útvonalakon a \verb|Managed-AllViewerExceptHostHeader| nevű Origin Request Policy, azaz ez a kéréseket minden headerrel továbbítja, kivéve a Host headert. A behaviorok mindegyikénél beállítottam, hogyha HTTP-vel jönne a kérés, akkor dobja vissza a kliens felé, hogy kezdje újra HTTPS alapon a kérést. A cachelési szabályzásokat nem volt célom túlbonyolítani, így egyszerű menedzselt optimalizált cache policy-t használtam, amely a legjobban optimalizálja a cachelési időt. Az API-n kívül a többinél be kellett állítsam, hogy az alap CORS-fejléceket (\verb|Managed-CORSHeaders|) visszaküldje a kliens felé a disztribúció, hogy a böngésző ne blokkolja a válaszokat. Az API esetében maga a NestJS alkalmazás kezeli ezt. Ezen beállításokat mutatja be a \refstruc{fig:behav} is.
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=150mm, keepaspectratio]{figures/distro_behav.png}
+  \caption{Képernyőkép a különböző útvonalakra illesztett cache behavior-ökről.}
+  \label{fig:behav}
+\end{figure}
+
+A VPC Origin típusú origin a Cloudfront disztribúcióban egy Amazon VPC-n belüli erőforrást jelent -- a mi esetünkben ez az ALB-példányunk --, amelyet a Cloudfront közvetlenül elérhet. Nem működik \emph{cross-account} módon, tehát amennyiben a célpont egy másik AWS-fiókban helyezkedne el. Az origin a VPC-n belül található, és elsősorban privát alhálózaton, security groupokkal van védve hálózati szinten. A VPC Origin típusú origin használata lehetővé teszi, hogy a Cloudfront közvetlenül kommunikáljon az erőforrással, anélkül hogy nyilvános doménnevet kelljen rendelni hozzá. Ezzel megspórolhatjuk az ALB Internet Gatewayre való kötését, az ALB számára domén bejegyzését, valamint SSL-tanúsítvány felvételét annak, a TLS-kapcsolat is terminálhat a Cloudfront disztribúcióban, házon belül már elég HTTP-alapon forgalmazni komponensek között.
+
+Az S3-vödrök publikus elérését teljes blokkolásra állítottam (\refstruc{fig:s3policy}). Úgy tettem őket elérhetővé a Cloudfront disztribúció számára, hogy egy-egy bucket policy-t csatoltam hozzájuk, amely az S3 originre egyedi, arra csatolt Origin Access Controllal (OAC)\cite{oac} együtt lehetővé teszi, hogy csupán az az AWS-beli principal -- azaz a mi disztribúciónk -- kapjon csupán az objektumolvasásokra hozzáférést, amelynek a megadott Amazon Resource Number (ARN) azonosítója van. Az ábrán megadott \verb|AWS:SourceArn| a \verb|streamzen-frontend-distro-dev| disztribúció ARN-je. A fent gyakorolt beállítás is biztosítja az IT-biztonságban is elterjedt és az AWS által is ösztönzött \emph{"principle of least privilege (PoLP)"} elvét.
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=150mm, keepaspectratio]{figures/distro_s3policy.png}
+  \caption{Képernyőkép a vödrök hozzáférési beállításairól.}
+  \label{fig:s3policy}
+\end{figure}
+
+A MediaPackage-csatorna védettségét pedig a publikált HLS-végpontra beállított \emph{CDN Authorization}\cite{cdnauth} segítségével biztosítottam, amely a Cloudfront disztribúciótól érkező kérésekben a \verb|X-MediaPackage-CDNIdentifier| headerben várja el egy titkos kulcs-érték párból az értéket. Ezt a headert a disztribúció felkonfigurálásakor a megfelelő originra rátettem. A MediaPackage-csatorna HLS-végpontjának hozzáférési beállításait, a felhasznált Secret Managerből származó kulcs-érték pár ARN-jét, és az azt elérő IAM-szerep ARN-jét a \refstruc{fig:mediapack} mutatja be.
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=150mm, keepaspectratio]{figures/distro_mediapack.png}
+  \caption{Képernyőkép a MediaPackage-csatornabeli HLS-végpont hozzáférési beállításairól.}
+  \label{fig:mediapack}
+\end{figure}
 
 \section{A statikus weboldal}
 
-TODO: Az S3 bucket. A statikus website kiszolgálásának módja.
+A statikus weboldal HTML-, JavaScript- és CSS-fájlokból, valamint a weboldal statikus tartalmát képező médiafájlokból (képek, betűtípusok) tevődik össze. Ezek összeállításához a React keretrendszerben írt SPA-alkalmazásokat is jól kezelő Vite.js eszközt használtam, amely a React alkalmazásokat egyetlen kiindulási \verb|index.html| HTML-fájlba csomagolja, és a készülő JavaScript-kódot is optimalizálja. A Vite.js eszköz a fejlesztési környezetben gyorsítótárazza a fájlokat, így gyorsabbá téve a fejlesztést, míg a gyártási környezetben (angolul \emph{in production}) optimalizálja azokat, hogy a lehető legkisebb méretűek legyenek.
 
-\begin{lstlisting}[
+Korábban bemutatásra került két különböző Cloudfront Function függvény, amelyek az S3-vödrök elérése előtt futnak minden kérésen. Ezek közül a statikus weboldal előtti függvény (\ref{lst:frontend}. kódrészlet) csupán arra hivatott, hogy a kéréseknél az egyes prefixekkel kezdődő kéréseket átirányítsa az alapértelmezett \verb|/| útvonalra. Ezekre azért volt szükség, hogy a statikus oldal által kezelt útvonalak mind a CDN-re való belépés után az alapértelmezett útvonalon elérhető \verb|index.html|-re oldódjanak fel, hiszen az indexoldalon behivatkozott JavaScriptből pedig majd a betöltés után a React Router megfelelően kezeli le a böngészőben az eredetileg kért útvonalat. Ez a megoldás természetesen magával vonzza azt az igényt, hogy akármikor ha új aloldalt vezetünk be, akkor a Cloudfront Function függvényben ezt a prefixet hozzá kell adnunk a \verb|spaInternalRoutingPrefixes| tömbhöz, amely a kód elején található.
+
+\begin{minipage}{0.92\textwidth}
+  \begin{lstlisting}[
   caption=frontend-request-default.js fájl tartalma.,
   label=lst:frontend,
   style=js,
@@ -64,53 +95,7 @@ function handler(event) {
   return request;
 }
 \end{lstlisting}
-
-\begin{lstlisting}[
-  caption=API stack moduljának felparaméterezése a main.tf fájlban.,
-  label=lst:mainApi,
-  style=tf,
-  basicstyle=\fontsize{10}{12}\ttfamily
-]
-module "api" {
-  source = "./modules/api-stack"
-  environment = var.environment
-  vpc_id = module.vpc.vpc_id
-
-  alb_tg_port_mapping = 80
-  alb_secgroup_ids = [module.vpc.secgroups["streamzen-alb-sg"].id]
-  alb_subnet_ids = [module.vpc.subnets["streamzen-alb-1a"].id, module.vpc.subnets["streamzen-alb-1b"].id]
-  alb_internal = true # does not need to be internet-facing
-  db_secgroup_ids = [module.vpc.secgroups["streamzen-db-sg"].id]
-  db_subnet_ids = [module.vpc.subnets["streamzen-private-1a"].id, module.vpc.subnets["streamzen-private-1b"].id]
-  api_secgroup_ids = [module.vpc.secgroups["streamzen-api-sg"].id]
-  api_subnet_ids = [module.vpc.subnets["streamzen-public-1a"].id, module.vpc.subnets["streamzen-public-1b"].id]
-  api_subnet_route_table_ids = [for s in values(module.vpc.subnets) : s.route_table_id]
-
-  ecs = {
-    family_name = "streamzen-api"
-    port_mapping = 80
-    task_environment = {
-      AUTHSCH_CLIENT_ID = data.aws_ssm_parameter.these["authsch-client-id"].value
-      AUTHSCH_CLIENT_SECRET = data.aws_ssm_parameter.these["authsch-client-secret"].value
-      POSTGRES_USER = data.aws_ssm_parameter.these["db-username"].value
-      POSTGRES_PASSWORD = data.aws_ssm_parameter.these["db-password"].value
-      POSTGRES_PRISMA_URL = "postgresql://${data.aws_ssm_parameter.these["db-username"].value}:${data.aws_ssm_parameter.these["db-password"].value}@streamzen-rds-dev.czw6iqm8461h.eu-central-1.rds.amazonaws.com:5432/streamzen?schema=public"
-      FRONTEND_CALLBACK = "https://${var.domain_name}"
-      JWT_SECRET = data.aws_ssm_parameter.these["api-jwt-secret"].value
-      AWS_S3_REGION = var.region
-      AWS_S3_UPLOADED_BUCKET = "streamzen-uploaded-videos-${var.environment}-bucket"
-    }
-    memory = 512
-    cpu = 256
-    desired_task_count = var.enable_ecs ? 1 : 0
-  }
-  db = {
-    engine = "postgres"
-    engine_version = "16.4"
-    instance_class = "db.t3.micro"
-  }
-}
-\end{lstlisting}
+\end{minipage}
 
 \subsection{A React alkalmazás fejlesztése}
 

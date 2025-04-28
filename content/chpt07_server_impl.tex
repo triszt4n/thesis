@@ -1,4 +1,4 @@
-\chapter{Szerver oldali folyamatok implementációi}
+\chapter{Szerveroldali folyamatok implementációi}
 
 A megjelenítési réteg alatt található szerveroldali folyamatok implementációja során a kiszolgáló infrastruktúra kialakítására, a Node.js alkalmazás fejlesztésére, a konténerizált környezet kialakítására, valamint a videófeldolgozásra fókuszálunk ebben a fejezetben.
 
@@ -33,6 +33,55 @@ TODO: S3 bucketba való mentése a videónak egy érdekes rész.
 \section{A konténerizált környezet}
 
 TODO: Leírás, hogy miért választottam a konténerizált környezetet, a konténerizálás előnyeit, hátrányait. Hogy használható ki a legjobban a konténerizáció az Application Load Balancer-rel együtt. Miképp kapcsoltam ezt a kettőt össze (ECS service, ALB).
+
+\begin{minipage}{0.92\textwidth}
+\begin{lstlisting}[
+  caption=API stack moduljának felparaméterezése a main.tf fájlban.,
+  label=lst:mainApi,
+  style=tf,
+  basicstyle=\fontsize{10}{12}\ttfamily
+]
+module "api" {
+  source = "./modules/api-stack"
+  environment = var.environment
+  vpc_id = module.vpc.vpc_id
+
+  alb_tg_port_mapping = 80
+  alb_secgroup_ids = [module.vpc.secgroups["streamzen-alb-sg"].id]
+  alb_subnet_ids = [module.vpc.subnets["streamzen-alb-1a"].id, module.vpc.subnets["streamzen-alb-1b"].id]
+  alb_internal = true # does not need to be internet-facing
+  db_secgroup_ids = [module.vpc.secgroups["streamzen-db-sg"].id]
+  db_subnet_ids = [module.vpc.subnets["streamzen-private-1a"].id, module.vpc.subnets["streamzen-private-1b"].id]
+  api_secgroup_ids = [module.vpc.secgroups["streamzen-api-sg"].id]
+  api_subnet_ids = [module.vpc.subnets["streamzen-public-1a"].id, module.vpc.subnets["streamzen-public-1b"].id]
+  api_subnet_route_table_ids = [for s in values(module.vpc.subnets) : s.route_table_id]
+
+  ecs = {
+    family_name = "streamzen-api"
+    port_mapping = 80
+    task_environment = {
+      AUTHSCH_CLIENT_ID = data.aws_ssm_parameter.these["authsch-client-id"].value
+      AUTHSCH_CLIENT_SECRET = data.aws_ssm_parameter.these["authsch-client-secret"].value
+      POSTGRES_USER = data.aws_ssm_parameter.these["db-username"].value
+      POSTGRES_PASSWORD = data.aws_ssm_parameter.these["db-password"].value
+      POSTGRES_PRISMA_URL = "postgresql://${data.aws_ssm_parameter.these["db-username"].value}:${data.aws_ssm_parameter.these["db-password"].value}@streamzen-rds-dev.czw6iqm8461h.eu-central-1.rds.amazonaws.com:5432/streamzen?schema=public"
+      FRONTEND_CALLBACK = "https://${var.domain_name}"
+      JWT_SECRET = data.aws_ssm_parameter.these["api-jwt-secret"].value
+      AWS_S3_REGION = var.region
+      AWS_S3_UPLOADED_BUCKET = "streamzen-uploaded-videos-${var.environment}-bucket"
+    }
+    memory = 512
+    cpu = 256
+    desired_task_count = var.enable_ecs ? 1 : 0
+  }
+  db = {
+    engine = "postgres"
+    engine_version = "16.4"
+    instance_class = "db.t3.micro"
+  }
+}
+\end{lstlisting}
+\end{minipage}
 
 \subsection{A Node.js szerveralkalmazás ECS-en}
 
