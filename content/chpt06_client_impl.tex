@@ -54,12 +54,12 @@ A backend \verb|/api| útvonalon keresztül elérhető, a Cloudfrontból ide egy
 
 A VPC Origin típusú origin a Cloudfront-disztribúcióban egy Amazon VPC-n belüli erőforrást jelent -- a mi esetünkben ez az ALB-példányunk --, amelyet a Cloudfront közvetlenül elérhet. Nem működik \emph{cross-account} módon, tehát amennyiben a célpont egy másik AWS-fiókban helyezkedne el. Az origin a VPC-n belül található, és elsősorban privát alhálózaton, security groupokkal van védve hálózati szinten. A~VPC Origin típusú origin használata lehetővé teszi, hogy a Cloudfront közvetlenül kommunikáljon az erőforrással, anélkül hogy nyilvános doménnevet kelljen rendelni hozzá. Ezzel megspórolhatjuk az ALB-példány Internet Gatewayre való kötését, az ALB-példány számára domén bejegyzését, valamint SSL-tanúsítvány felvételét annak, a TLS-kapcsolat is terminálhat a Cloudfront-disztribúcióban, házon belül már elég HTTP-alapon forgalmazni komponensek között.
 
-Az S3-vödrök publikus elérését teljes blokkolásra állítottam (\refstruc{fig:s3policy}). Úgy tettem őket elérhetővé a Cloudfront disztribúció számára, hogy egy-egy bucket policy-t csatoltam hozzájuk, amely az S3 originre egyedi, arra csatolt Origin Access Controllal (OAC)\cite{oac} együtt lehetővé teszi, hogy csupán az az AWS-beli principal -- azaz a mi disztribúciónk -- kapjon csupán az objektumolvasásokra hozzáférést, amelynek a megadott Amazon Resource Number (ARN) azonosítója van. Az ábrán megadott \verb|AWS:SourceArn| a \verb|streamzen-frontend-distro-dev| disztribúció ARN-je. A fent gyakorolt beállítás is biztosítja az IT-biztonságban is elterjedt és az AWS által is ösztönzött \emph{"principle of least privilege (PoLP)"} elvét.
+Az S3-vödrök publikus elérését teljes blokkolásra állítottam (\refstruc{fig:s3policy}). Úgy tettem őket elérhetővé a Cloudfront-disztribúció számára, hogy egy-egy bucket policy-t csatoltam hozzájuk, amely az S3 originre egyedi, arra csatolt Origin Access Controllal (OAC)\cite{oac} együtt lehetővé teszi, hogy csupán az az AWS-beli principal -- azaz a mi disztribúciónk -- kapjon az objektumolvasásokra (és csak arra) hozzáférést, amelynek a megadott Amazon Resource Number (ARN) azonosítója van. Az ábrán megadott \verb|AWS:SourceArn| a \verb|streamzen-frontend-distro-dev| disztribúció ARN-je. A fent gyakorolt beállítás is biztosítja az IT-biztonságban is elterjedt és az AWS által is ösztönzött \emph{"principle of least privilege (PoLP)"} elvét.
 
 \begin{figure}[ht]
   \centering
   \includegraphics[width=150mm, keepaspectratio]{figures/distro_s3policy.png}
-  \caption{Képernyőkép a vödrök hozzáférési beállításairól.}
+  \caption{Képernyőkép a vödrök hozzáférési beállításairól konzolon.}
   \label{fig:s3policy}
 \end{figure}
 
@@ -68,7 +68,7 @@ A MediaPackage-csatorna védettségét pedig a publikált HLS-végpontra beáll�
 \begin{figure}[ht]
   \centering
   \includegraphics[width=150mm, keepaspectratio]{figures/distro_mediapack.png}
-  \caption{Képernyőkép a MediaPackage-csatornabeli HLS-végpont hozzáférési beállításairól.}
+  \caption{Képernyőkép a MediaPackage-csatornabeli HLS-végpont hozzáférési beállításairól konzolon.}
   \label{fig:mediapack}
 \end{figure}
 
@@ -97,46 +97,7 @@ function handler(event) {
 \end{lstlisting}
 \end{minipage}
 
-\subsection{A React-alkalmazás fejlesztése}
-
-TODO: ejlesztés részletei. Nem annyira lényeges most ebben a dolgozatban, de néhány szép kihívást jelentő kidolgozott form és egyebeket be lehet itt mutatni.
-
-\begin{minipage}{0.92\textwidth}
-  \begin{lstlisting}[
-  caption=src/hooks/auth-context.tsx fájl tartalma.,
-  label=lst:authCtx,
-  style=js,
-  basicstyle=\fontsize{10}{12}\ttfamily
-]
-import { createContext, PropsWithChildren } from "react"
-import { useMe } from "./use-me.hook"
-
-type AuthCtxType = {
-  authenticated: boolean
-  isLoading: boolean
-  login: () => void
-  logout: () => void
-}
-export const AuthCtx = createContext<AuthCtxType | undefined>(undefined)
-
-export function AuthProvider({ children }: PropsWithChildren) {
-  const { data, isLoading } = useMe()
-  const onLogin = async () => {
-    window.location.href = import.meta.env.VITE_BACKEND_URL+"/auth/login"
-  }
-  const onLogout = async () => {
-    window.location.href = import.meta.env.VITE_BACKEND_URL+"/auth/logout"
-  }
-  const value = {
-    authenticated: !!data,
-    isLoading,
-    login: onLogin,
-    logout: onLogout,
-  }
-  return <AuthCtx.Provider value={value}>{children}</AuthCtx.Provider>
-}
-\end{lstlisting}
-\end{minipage}
+A Vite.js ökoszisztémájának részét képzik különböző fejlesztők által összerakott kódgeneráló szkriptek, a Vite.js hivatalos dokumentációja által ajánlott szkriptek közül választottam a kezdőprojekt felállítására egy olyat, amely TypeScript nyelven írt és React keretrendszerre felkészítve rak össze egy kliensoldali NPM-projektet. Ezek után telepítettem ebbe a projektbe a könnyebb fejlesztéshez szükséges könyvtárakat, ilyenek például a React Router, a React Hook Forms, az Axios és a Hls.js, utóbbi kettő jelentős szerepet fog még betölteni később implementációs kifejtéseimben. Ezek mellett UI-komponensek kódját húztam be a \emph{shadcn/ui}\footnote{\url{https://ui.shadcn.com/}} könyvtárából, amelyek a felhasználói felület megjelenítéséhez szükségesek.
 
 \subsection{A weboldal telepítésének CI/CD-folyamata}
 

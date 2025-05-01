@@ -1,0 +1,46 @@
+\chapter{Rétegeken átívelő szolgáltatások implementációja}
+
+Ebben a fejezetben kerül kifejtésre az implementációja olyan szolgáltatásainak az alkalmazásnak, amelyek a kliens és szerver rétegén átívelnek, és külön-külön nem lenne érdemes bemutatni őket.
+
+\section{Single Sign-On (SSO) integrációja}
+
+A videók feltöltésére azok jogosultak, akik a stúdióba be tudnak lépni a \verb|/studio| aloldalon, a bejelentkeztetéshez pedig a kari hallgatói közösségünk által nyílt forráskóddal fejlesztett AuthSCH nevű Single Sign-On (SSO) rendszert integráltam be a weboldalba,  ennek az esszenciális tokenkezelési implementációs részeit a backendre bíztam, a kliensoldal csupán a megfelelő útvonalakra irányításért felel.
+
+A \ref{lst:authCtx}. kódrészlet mutatja be a React-alkalmazásban használt \verb|AuthCtx| nevű kontextust, amely JSON Web Tokeneket (JWT) használ a bejelentkeztetés során a felhasználói adatok biztonságos és állapotmentes átpasszolására. A \verb|useMe| nevű hook az AuthSCH SSO API-ját használja a bejelentkezett felhasználó adatainak lekérdezésére, amelyet a \verb|/api/me| végponton keresztül érhetünk el. A \verb|AuthProvider| komponens biztosítja a kontextust az alkalmazás többi részének, és kezeli a bejelentkezést és kijelentkezést.
+
+\begin{minipage}{0.92\textwidth}
+  \begin{lstlisting}[
+  caption=src/hooks/auth-context.tsx fájl tartalma.,
+  label=lst:authCtx,
+  style=js,
+  basicstyle=\fontsize{10}{12}\ttfamily
+]
+import { createContext, PropsWithChildren } from "react"
+import { useMe } from "./use-me.hook"
+
+type AuthCtxType = {
+  authenticated: boolean
+  isLoading: boolean
+  login: () => void
+  logout: () => void
+}
+export const AuthCtx = createContext<AuthCtxType | undefined>(undefined)
+
+export function AuthProvider({ children }: PropsWithChildren) {
+  const { data, isLoading } = useMe()
+  const onLogin = async () => {
+    window.location.href = import.meta.env.VITE_BACKEND_URL+"/auth/login"
+  }
+  const onLogout = async () => {
+    window.location.href = import.meta.env.VITE_BACKEND_URL+"/auth/logout"
+  }
+  const value = {
+    authenticated: !!data,
+    isLoading,
+    login: onLogin,
+    logout: onLogout,
+  }
+  return <AuthCtx.Provider value={value}>{children}</AuthCtx.Provider>
+}
+\end{lstlisting}
+\end{minipage}
