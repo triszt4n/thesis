@@ -46,9 +46,9 @@ A disztribúció után jönnek egy új rétegben először egy ALB-példány, ez
 
 A RTMP-alapú live stream fogadását OBS Studióból a MediaLive kezeli, ami a MediaPackage segítségével továbbítja egy csatornán a tartalmat. A VOD-tartalmakat a MediaConvert konvertálja HLS-adatfolyamba illeszthető formátumba, a kimenetét pedig a S3-vödörbe helyezi. A szerveralkalmazás egy Node.js alapú web app a terveim alapján, amely NestJS keretrendszerrel kerül kialakításra, Dockerrel konténerizálom és az ECS-be telepítem, azzal menedzselem életciklusát; az ECR-be kerülnek a konténer képei. Az adatbázis egy PostgreSQL példánnyal kerül megvalósításra, amelyet az RDS szolgáltatásban helyezek el menedzselésre.
 
-Az orkesztrációs eseményekre Lambda függvények reagálnak, az eseményeket központilag az EventBridge hallgatja le szabályokkal és kötteti össze a megfelelő Lambda függvényekkel. Felhasználásra kerülnek a biztonságos kezelésre IAM-szerepkörök, monitorozásra és naplózásra a CloudWatch, illetve az érzékeny paraméterek tárolására az AWS Secrets Manager.
+Az orkesztrációs eseményekre Lambda-függvények reagálnak, az eseményeket központilag az EventBridge hallgatja le szabályokkal és kötteti össze a megfelelő Lambda függvényekkel. Felhasználásra kerülnek a biztonságos kezelésre IAM-szerepkörök, monitorozásra és naplózásra a CloudWatch, illetve az érzékeny paraméterek tárolására az AWS Secrets Manager.
 
-A kódbázis GitHubon kerül verziókezelésre, ott a CI/CD-folyamatokat GitHub Actions segítségével automatizálom a szerveralkalmazás élesítésére, a React-alkalmazás statikus fájljainak feltöltésére. A Terraform segítségével az infrastruktúrát kód formájában kezelem, a Terragrunt -- amely egy Terraform-kódkezelést segítő kiegészítő eszköz -- pedig a Terraform modulokat kezeli, hogy a kódbázis ne legyen túl bonyolult.
+A kódbázis GitHubon kerül verziókezelésre, ott a CI/CD-folyamatokat GitHub Actions segítségével automatizálom a szerveralkalmazás élesítésére, a React-alkalmazás statikus fájljainak feltöltésére. A Terraform segítségével az infrastruktúrát kód formájában kezelem, a Terragrunt -- amely egy Terraform-kódkezelést segítő kiegészítő eszköz -- pedig a Terraform-modulokat kezeli, hogy a kódbázis ne legyen túl bonyolult.
 
 \vspace{2cm} % remove, if unnecessary
 

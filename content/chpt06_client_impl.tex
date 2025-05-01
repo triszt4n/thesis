@@ -4,7 +4,7 @@ A következőkben részletezem a klienseket kiszolgáló infrastrukturális komp
 
 \section{A CDN és a hozzácsatolt erőforrások}
 
-A CDN és az ahhoz tartozó erőforrások jelentik az első belépési pontját egy a rendszerhez intézett kérésnek. A rendszer és a CDN -- azaz a Cloudfront disztribúció -- számára a \verb|stream.trisz.hu| doménnevet rendeltem, amelyet a saját \verb|trisz.hu| doménem aldoménjeként jegyeztem be a Route 53 szolgáltatásban egy külön DNS zónaként. A böngészőből, azaz kívülről indított kérések minden esetben a DNS feloldásával kezdődnek, a Route 53 névszervereire oldódik fel, ezzel szerzi meg a kliens az IP-jét a Cloudfront edge szerverfarmjának. A Cloudfront disztribúcióknak különleges CNAME rekordjaik vannak, biztosítják hogy a kliens a legközelebbi edge szerver farmhoz csatlakozhasson, a konkrét működést az AWS elrejti a háztető alatt előlünk. A biztonságos, HTTPS-alapú szerver-kliens kommunikációt a Cloudfront disztribúcióhoz tartozó SSL-tanúsítvánnyal biztosítja a rendszer. A tanúsítványt az AWS Certificate Manager szolgáltatásban generáltam és kezeltem, amely automatikusan megújítja a lejáró tanúsítványokat (\refstruc{fig:distro}), amennyiben a domainhez tartozó DNS zónát a Route 53 szolgáltatásban -- azaz az AWS szolgáltatásában kezeljük.
+A CDN és az ahhoz tartozó erőforrások jelentik az első belépési pontját egy a rendszerhez intézett kérésnek. A rendszer és a CDN -- azaz a Cloudfront-disztribúció -- számára a \verb|stream.trisz.hu| doménnevet rendeltem, amelyet a saját \verb|trisz.hu| doménem aldoménjeként jegyeztem be a Route 53 szolgáltatásban egy külön DNS zónaként. A böngészőből, azaz kívülről indított kérések minden esetben a DNS feloldásával kezdődnek, a Route 53 névszervereire oldódik fel, ezzel szerzi meg a kliens az IP-jét a Cloudfront edge szerverfarmjának. A Cloudfront-disztribúcióknak különleges CNAME rekordjaik vannak, biztosítják hogy a kliens a legközelebbi edge szerverfarmhoz csatlakozhasson, a konkrét működést az AWS elrejti a háztető alatt előlünk. A biztonságos, HTTPS-alapú szerver--kliens kommunikációt a Cloudfront-disztribúcióhoz tartozó SSL-tanúsítvánnyal biztosítja a rendszer. A tanúsítványt az AWS Certificate Manager szolgáltatásban generáltam és kezeltem, amely automatikusan megújítja a lejáró tanúsítványokat (\refstruc{fig:distro}), amennyiben a domainhez tartozó DNS zónát a Route 53 szolgáltatásban -- azaz az AWS szolgáltatásában kezeljük.
 
 \begin{figure}[ht]
   \centering
@@ -24,7 +24,7 @@ A Cloudfront disztribúcióhoz hozzácsatoltam egy WAF ACL-t, amely a webalkalma
 
 Az edge-en kerül kiértékelésre a kapott kérés útvonala (angolul \emph{path}) alapján az, hogy melyik origin felé kell továbbítsa a disztribúció a kérést. A \refstruc{fig:client} adatközpont (angolul \emph{datacenter}) felőli oldalán láthatóak a nyilak végén, hogy milyen útvonalak alapján kerül a kérés melyik originhez. A kiértékelés során a disztribúció figyelembe veszi a szabályok sorrendjét, az szabályokban definiált útvonalmintákra mintaillesztés történik, és ha kapott útvonal illeszkedik a sorban következő mintára, ott véget és a kiértékelés. A disztribúcióhoz tartozó originok közül a legfontosabb a statikus weboldal, amely az S3-vödörben található, ez lett az alapértelmezett útvonal, ahova a kérések mennek, amennyiben egyik előbbi útvonalmintára se illeszkedik a kérésben található útvonal.
 
-A Cloudfront biztosítja, hogy kis számításigényű logikát tudjuk még az edge rétegében futtatni a kéréseken, erre Cloudfront Function függvényeket alkalmaztam a MediaPackage csatorna előtt és a VOD-okat kiszolgáló S3 bucket (\verb|streamzen-static-assets-dev-bucket|) előtt. Ez a \verb|streamzen-url-rewrite-function| nevű kis függvény egy \verb|url-rewrite.js| nevű fájlt futtat (\ref{lst:urlrewrite}. kódrészlet). A függvény a kérés URI-ját vizsgálja, és ha a kérés a \verb|/media-assets/| vagy \verb|/media-live/| prefixekkel kezdődik, akkor eltávolítja ezeket a prefixeket, és a kérés így megtisztított URI-ját továbbítja a konkrét origin felé.
+A Cloudfront biztosítja, hogy kis számításigényű logikát tudjuk még az edge rétegében futtatni a kéréseken, erre Cloudfront Function-függvényeket alkalmaztam a MediaPackage csatorna előtt és a VOD-okat kiszolgáló S3 bucket (\verb|streamzen-static-assets-dev-bucket|) előtt. Ez a \verb|streamzen-url-rewrite-function| nevű kis függvény egy \verb|url-rewrite.js| nevű fájlt futtat (\ref{lst:urlrewrite}. kódrészlet). A függvény a kérés URI-ját vizsgálja, és ha a kérés a \verb|/media-assets/| vagy \verb|/media-live/| prefixekkel kezdődik, akkor eltávolítja ezeket a prefixeket, és a kérés így megtisztított URI-ját továbbítja a konkrét origin felé.
 
 \begin{minipage}{0.92\textwidth}
   \begin{lstlisting}[
@@ -43,16 +43,16 @@ function handler(event) {
 \end{lstlisting}
 \end{minipage}
 
-A backend \verb|/api| útvonalon keresztül elérhető, a Cloudfrontból ide egy VPC Origin típusú módon lehet továbbítani a kérést, ezzel leegyszerűsítve a kérések hálózati biztonsági kezelését. Ennek az originnek a cache behaviorje nem igényli, hogy lehagyjuk a Host headert, ugyanis az ALB mögötte akár fel tudja használni a forgalomirányításhoz. A többi origin esetén a Host headert le kell hagyni a kérésekről (működésük ezt igényli az AWS dokumentáció alapján dolgozva), ezért is került használatra ezeken az útvonalakon a \verb|Managed-AllViewerExceptHostHeader| nevű Origin Request Policy, azaz ez a kéréseket minden headerrel továbbítja, kivéve a Host headert. A behaviorok mindegyikénél beállítottam, hogyha HTTP-vel jönne a kérés, akkor dobja vissza a kliens felé, hogy kezdje újra HTTPS alapon a kérést. A cachelési szabályzásokat nem volt célom túlbonyolítani, így egyszerű menedzselt optimalizált cache policy-t használtam, amely a legjobban optimalizálja a cachelési időt. Az API-n kívül a többinél be kellett állítsam, hogy az alap CORS-fejléceket (\verb|Managed-CORSHeaders|) visszaküldje a kliens felé a disztribúció, hogy a böngésző ne blokkolja a válaszokat. Az API esetében maga a NestJS alkalmazás kezeli ezt. Ezen beállításokat mutatja be a \refstruc{fig:behav} is.
+A backend \verb|/api| útvonalon keresztül elérhető, a Cloudfrontból ide egy VPC Origin típusú módon lehet továbbítani a kérést, ezzel leegyszerűsítve a kérések hálózati biztonsági kezelését. Ennek az originnek a cache behaviorje nem igényli, hogy lehagyjuk a Host headert, ugyanis az ALB mögötte akár fel tudja használni a forgalomirányításhoz. A többi origin esetén a Host headert le kell hagyni a kérésekről (működésük ezt igényli az AWS-dokumentáció alapján dolgozva), ezért is került használatra ezeken az útvonalakon a \verb|Managed-AllViewerExceptHostHeader| nevű Origin Request Policy, azaz ez a kéréseket minden headerrel továbbítja, kivéve a Host headert. A behaviorok mindegyikénél beállítottam, hogyha HTTP-vel jönne a kérés, akkor dobja vissza a kliens felé, hogy kezdje újra HTTPS alapon a kérést. A cachelési szabályzásokat nem volt célom túlbonyolítani, így egyszerű menedzselt optimalizált cache policy-t használtam, amely a legjobban optimalizálja a cachelési időt. Az API-n kívül a többinél be kellett állítsam, hogy az alap CORS-fejléceket (\verb|Managed-CORSHeaders|) visszaküldje a kliens felé a disztribúció, hogy a böngésző ne blokkolja a válaszokat. Az API esetében maga a NestJS alkalmazás kezeli ezt. Ezen beállításokat mutatja be a \refstruc{fig:behav} is.
 
 \begin{figure}[ht]
   \centering
   \includegraphics[width=150mm, keepaspectratio]{figures/distro_behav.png}
-  \caption{Képernyőkép a különböző útvonalakra illesztett cache behavior-ökről.}
+  \caption{Képernyőkép a különböző útvonalakra illesztett cache behaviorökről.}
   \label{fig:behav}
 \end{figure}
 
-A VPC Origin típusú origin a Cloudfront disztribúcióban egy Amazon VPC-n belüli erőforrást jelent -- a mi esetünkben ez az ALB-példányunk --, amelyet a Cloudfront közvetlenül elérhet. Nem működik \emph{cross-account} módon, tehát amennyiben a célpont egy másik AWS-fiókban helyezkedne el. Az origin a VPC-n belül található, és elsősorban privát alhálózaton, security groupokkal van védve hálózati szinten. A VPC Origin típusú origin használata lehetővé teszi, hogy a Cloudfront közvetlenül kommunikáljon az erőforrással, anélkül hogy nyilvános doménnevet kelljen rendelni hozzá. Ezzel megspórolhatjuk az ALB Internet Gatewayre való kötését, az ALB számára domén bejegyzését, valamint SSL-tanúsítvány felvételét annak, a TLS-kapcsolat is terminálhat a Cloudfront disztribúcióban, házon belül már elég HTTP-alapon forgalmazni komponensek között.
+A VPC Origin típusú origin a Cloudfront-disztribúcióban egy Amazon VPC-n belüli erőforrást jelent -- a mi esetünkben ez az ALB-példányunk --, amelyet a Cloudfront közvetlenül elérhet. Nem működik \emph{cross-account} módon, tehát amennyiben a célpont egy másik AWS-fiókban helyezkedne el. Az origin a VPC-n belül található, és elsősorban privát alhálózaton, security groupokkal van védve hálózati szinten. A~VPC Origin típusú origin használata lehetővé teszi, hogy a Cloudfront közvetlenül kommunikáljon az erőforrással, anélkül hogy nyilvános doménnevet kelljen rendelni hozzá. Ezzel megspórolhatjuk az ALB-példány Internet Gatewayre való kötését, az ALB-példány számára domén bejegyzését, valamint SSL-tanúsítvány felvételét annak, a TLS-kapcsolat is terminálhat a Cloudfront-disztribúcióban, házon belül már elég HTTP-alapon forgalmazni komponensek között.
 
 Az S3-vödrök publikus elérését teljes blokkolásra állítottam (\refstruc{fig:s3policy}). Úgy tettem őket elérhetővé a Cloudfront disztribúció számára, hogy egy-egy bucket policy-t csatoltam hozzájuk, amely az S3 originre egyedi, arra csatolt Origin Access Controllal (OAC)\cite{oac} együtt lehetővé teszi, hogy csupán az az AWS-beli principal -- azaz a mi disztribúciónk -- kapjon csupán az objektumolvasásokra hozzáférést, amelynek a megadott Amazon Resource Number (ARN) azonosítója van. Az ábrán megadott \verb|AWS:SourceArn| a \verb|streamzen-frontend-distro-dev| disztribúció ARN-je. A fent gyakorolt beállítás is biztosítja az IT-biztonságban is elterjedt és az AWS által is ösztönzött \emph{"principle of least privilege (PoLP)"} elvét.
 
@@ -63,7 +63,7 @@ Az S3-vödrök publikus elérését teljes blokkolásra állítottam (\refstruc{
   \label{fig:s3policy}
 \end{figure}
 
-A MediaPackage-csatorna védettségét pedig a publikált HLS-végpontra beállított \emph{CDN Authorization}\cite{cdnauth} segítségével biztosítottam, amely a Cloudfront disztribúciótól érkező kérésekben a \verb|X-MediaPackage-CDNIdentifier| headerben várja el egy titkos kulcs-érték párból az értéket. Ezt a headert a disztribúció felkonfigurálásakor a megfelelő originra rátettem. A MediaPackage-csatorna HLS-végpontjának hozzáférési beállításait, a felhasznált Secret Managerből származó kulcs-érték pár ARN-jét, és az azt elérő IAM-szerep ARN-jét a \refstruc{fig:mediapack} mutatja be.
+A MediaPackage-csatorna védettségét pedig a publikált HLS-végpontra beállított \emph{CDN Authorization}\cite{cdnauth} segítségével biztosítottam, amely a Cloudfront-disztribúciótól érkező kérésekben a \verb|X-MediaPackage-CDNIdentifier| headerben várja el egy titkos kulcs-érték párból az értéket. Ezt a headert a disztribúció felkonfigurálásakor a megfelelő originra rátettem. A MediaPackage-csatorna HLS-végpontjának hozzáférési beállításait, a felhasznált Secret Managerből származó kulcs-érték pár ARN-jét, és az azt elérő IAM-szerep ARN-jét a \refstruc{fig:mediapack} mutatja be.
 
 \begin{figure}[ht]
   \centering
@@ -74,9 +74,9 @@ A MediaPackage-csatorna védettségét pedig a publikált HLS-végpontra beáll�
 
 \section{A statikus weboldal}
 
-A statikus weboldal HTML-, JavaScript- és CSS-fájlokból, valamint a weboldal statikus tartalmát képező médiafájlokból (képek, betűtípusok) tevődik össze. Ezek összeállításához a React keretrendszerben írt SPA-alkalmazásokat is jól kezelő Vite.js eszközt használtam, amely a React alkalmazásokat egyetlen kiindulási \verb|index.html| HTML-fájlba csomagolja, és a készülő JavaScript-kódot is optimalizálja. A Vite.js eszköz a fejlesztési környezetben gyorsítótárazza a fájlokat, így gyorsabbá téve a fejlesztést, míg a gyártási környezetben (angolul \emph{in production}) optimalizálja azokat, hogy a lehető legkisebb méretűek legyenek.
+A statikus weboldal HTML-, JavaScript- és CSS-fájlokból, valamint a weboldal statikus tartalmát képező médiafájlokból (képek, betűtípusok) tevődik össze. Ezek összeállításához a React keretrendszerben írt SPA-alkalmazásokat is jól kezelő Vite.js eszközt használtam, amely a React-alkalmazásokat egyetlen kiindulási \verb|index.html| HTML-fájlba csomagolja, és a készülő JavaScript-kódot is optimalizálja. A Vite.js eszköz a fejlesztési környezetben gyorsítótárazza a fájlokat, így gyorsabbá téve a fejlesztést, míg a gyártási környezetben (angolul \emph{in production}) optimalizálja azokat, hogy a lehető legkisebb méretűek legyenek.
 
-Korábban bemutatásra került két különböző Cloudfront Function függvény, amelyek az S3-vödrök elérése előtt futnak minden kérésen. Ezek közül a statikus weboldal előtti függvény (\ref{lst:frontend}. kódrészlet) csupán arra hivatott, hogy a kéréseknél az egyes prefixekkel kezdődő kéréseket átirányítsa az alapértelmezett \verb|/| útvonalra. Ezekre azért volt szükség, hogy a statikus oldal által kezelt útvonalak mind a CDN-re való belépés után az alapértelmezett útvonalon elérhető \verb|index.html|-re oldódjanak fel, hiszen az indexoldalon behivatkozott JavaScriptből pedig majd a betöltés után a React Router megfelelően kezeli le a böngészőben az eredetileg kért útvonalat. Ez a megoldás természetesen magával vonzza azt az igényt, hogy akármikor ha új aloldalt vezetünk be, akkor a Cloudfront Function függvényben ezt a prefixet hozzá kell adnunk a \verb|spaInternalRoutingPrefixes| tömbhöz, amely a kód elején található.
+Korábban bemutatásra került két különböző Cloudfront Function-függvény, amelyek az S3-vödrök elérése előtt futnak minden kérésen. Ezek közül a statikus weboldal előtti függvény (\ref{lst:frontend}. kódrészlet) csupán arra hivatott, hogy a kéréseknél az egyes prefixekkel kezdődő kéréseket átirányítsa az alapértelmezett \verb|/| útvonalra. Ezekre azért volt szükség, hogy a statikus oldal által kezelt útvonalak mind a CDN-re való belépés után az alapértelmezett útvonalon elérhető \verb|index.html|-re oldódjanak fel, hiszen az indexoldalon behivatkozott JavaScriptből pedig majd a betöltés után a React Router megfelelően kezeli le a böngészőben az eredetileg kért útvonalat. Ez a megoldás természetesen magával vonzza azt az igényt, hogy akármikor ha új aloldalt vezetünk be, akkor a Cloudfront Function-függvényben ezt a prefixet hozzá kell adnunk a \verb|spaInternalRoutingPrefixes| tömbhöz, amely a kód elején található.
 
 \begin{minipage}{0.92\textwidth}
   \begin{lstlisting}[
@@ -97,15 +97,52 @@ function handler(event) {
 \end{lstlisting}
 \end{minipage}
 
-\subsection{A React alkalmazás fejlesztése}
+\subsection{A React-alkalmazás fejlesztése}
 
 TODO: ejlesztés részletei. Nem annyira lényeges most ebben a dolgozatban, de néhány szép kihívást jelentő kidolgozott form és egyebeket be lehet itt mutatni.
 
-\subsection{A weboldal telepítésének CI/CD folyamata}
+\begin{minipage}{0.92\textwidth}
+  \begin{lstlisting}[
+  caption=src/hooks/auth-context.tsx fájl tartalma.,
+  label=lst:authCtx,
+  style=js,
+  basicstyle=\fontsize{10}{12}\ttfamily
+]
+import { createContext, PropsWithChildren } from "react"
+import { useMe } from "./use-me.hook"
+
+type AuthCtxType = {
+  authenticated: boolean
+  isLoading: boolean
+  login: () => void
+  logout: () => void
+}
+export const AuthCtx = createContext<AuthCtxType | undefined>(undefined)
+
+export function AuthProvider({ children }: PropsWithChildren) {
+  const { data, isLoading } = useMe()
+  const onLogin = async () => {
+    window.location.href = import.meta.env.VITE_BACKEND_URL+"/auth/login"
+  }
+  const onLogout = async () => {
+    window.location.href = import.meta.env.VITE_BACKEND_URL+"/auth/logout"
+  }
+  const value = {
+    authenticated: !!data,
+    isLoading,
+    login: onLogin,
+    logout: onLogout,
+  }
+  return <AuthCtx.Provider value={value}>{children}</AuthCtx.Provider>
+}
+\end{lstlisting}
+\end{minipage}
+
+\subsection{A weboldal telepítésének CI/CD-folyamata}
 
 TODO: GitHub Actions a smoke tesztekre, workflowk, a deploymentek. Értsd itt: S3 telepítés.
 
-\section{Média erőforrások objektumtárolói}
+\section{Média-erőforrások objektumtárolói}
 
 TODO: Hogy lettek felkonfigurálva és miért az egyes S3 bucket-ok (bucket policy, CORS policy).
 
