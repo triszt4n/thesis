@@ -56,7 +56,7 @@ A VPC Origin típusú origin a Cloudfront-disztribúcióban egy Amazon VPC-n bel
 
 Az S3-vödrök publikus elérését teljes blokkolásra állítottam (\refstruc{fig:s3policy}). Úgy tettem őket elérhetővé a Cloudfront-disztribúció számára, hogy egy-egy bucket policy-t csatoltam hozzájuk, amely az S3 originre egyedi, arra csatolt Origin Access Controllal (OAC)\cite{oac} együtt lehetővé teszi, hogy csupán az az AWS-beli principal -- azaz a mi disztribúciónk -- kapjon az objektumolvasásokra (és csak arra) hozzáférést, amelynek a megadott Amazon Resource Number (ARN) azonosítója van. Az ábrán megadott \verb|AWS:SourceArn| a \verb|streamzen-frontend-distro-dev| disztribúció ARN-je. A fent gyakorolt beállítás is biztosítja az IT-biztonságban is elterjedt és az AWS által is ösztönzött \emph{"principle of least privilege (PoLP)"} elvét.
 
-\begin{figure}[ht]
+\begin{figure}[!ht]
   \centering
   \includegraphics[width=150mm, keepaspectratio]{figures/distro_s3policy.png}
   \caption{Képernyőkép a vödrök hozzáférési beállításairól konzolon.}
@@ -65,7 +65,7 @@ Az S3-vödrök publikus elérését teljes blokkolásra állítottam (\refstruc{
 
 A MediaPackage-csatorna védettségét pedig a publikált HLS-végpontra beállított \emph{CDN Authorization}\cite{cdnauth} segítségével biztosítottam, amely a Cloudfront-disztribúciótól érkező kérésekben a \verb|X-MediaPackage-CDNIdentifier| headerben várja el egy titkos kulcs-érték párból az értéket. Ezt a headert a disztribúció felkonfigurálásakor a megfelelő originra rátettem. A MediaPackage-csatorna HLS-végpontjának hozzáférési beállításait, a felhasznált Secret Managerből származó kulcs-érték pár ARN-jét, és az azt elérő IAM-szerep ARN-jét a \refstruc{fig:mediapack} mutatja be.
 
-\begin{figure}[ht]
+\begin{figure}[!ht]
   \centering
   \includegraphics[width=150mm, keepaspectratio]{figures/distro_mediapack.png}
   \caption{Képernyőkép a MediaPackage-csatornabeli HLS-végpont hozzáférési beállításairól konzolon.}
@@ -85,8 +85,7 @@ Korábban bemutatásra került két különböző Cloudfront Function-függvény
   style=js,
   basicstyle=\fontsize{10}{12}\ttfamily
 ]
-const spaInternalRoutingPrefixes = ["/videos", "/live", "/events", "/members", 
-  "/courses", "/about", "/studio", "/login"];
+const spaInternalRoutingPrefixes = ["/videos", "/live", "/events", "/members", "/courses", "/about", "/studio", "/login"];
 function handler(event) {
   const request = event.request;
   if (spaInternalRoutingPrefixes.some((pref) => request.uri.startsWith(pref))) {
@@ -97,16 +96,63 @@ function handler(event) {
 \end{lstlisting}
 \end{minipage}
 
-A Vite.js ökoszisztémájának részét képzik különböző fejlesztők által összerakott kódgeneráló szkriptek, a Vite.js hivatalos dokumentációja által ajánlott szkriptek közül választottam a kezdőprojekt felállítására egy olyat, amely TypeScript nyelven írt és React keretrendszerre felkészítve rak össze egy kliensoldali NPM-projektet. Ezek után telepítettem ebbe a projektbe a könnyebb fejlesztéshez szükséges könyvtárakat, ilyenek például a React Router, a React Hook Forms, az Axios és a Hls.js, utóbbi kettő jelentős szerepet fog még betölteni később implementációs kifejtéseimben. Ezek mellett UI-komponensek kódját húztam be a \emph{shadcn/ui}\footnote{\url{https://ui.shadcn.com/}} könyvtárából, amelyek a felhasználói felület megjelenítéséhez szükségesek.
+A Vite.js ökoszisztémájának részét képzik különböző fejlesztők által összerakott kódgeneráló szkriptek, a Vite.js hivatalos dokumentációja által ajánlott szkriptek közül választottam a kezdőprojekt felállítására egy olyat, amely TypeScript nyelven írt és React keretrendszerre felkészítve rak össze egy kliensoldali NPM-projektet.
+
+Ezek után telepítettem ebbe a projektbe a könnyebb fejlesztéshez szükséges könyvtárakat, ilyenek például a React Router, a React Hook Forms, az Axios és a Hls.js, utóbbi kettő jelentős szerepet fog még betölteni később implementációs kifejtéseimben. Ezek mellett UI-komponensek kódját húztam be a \emph{shadcn/ui}\footnote{\url{https://ui.shadcn.com/}} könyvtárából, amelyek a felhasználói felület megjelenítéséhez szükségesek.
+
+A Vite.js képes fejlesztői módban indítani egy webszervert arra, hogy folyamatosan figyelje a fájlokat (úgynevezett \emph{watch mode}-ban), és ha változás történik, akkor újrabuildelje a fájlokat, és újraindítsa a webszervert.
 
 \subsection{A weboldal telepítésének CI/CD-folyamata}
 
-TODO: GitHub Actions a smoke tesztekre, workflowk, a deploymentek. Értsd itt: S3 telepítés.
+Előkészítettem egy CI/CD-folyamatot \verb|lint-client.yml| néven a \verb|.github| mappa munkafolyamatai alatt, amely akkor fut le, ha a változtatások giten való feltöltése után készítünk egy Pull Requestet. Ez a munkafolyamat a következő lépéseket hajtja végre: statikus ellenőrzés ESLint\footnote{\url{https://eslint.org/}} használatával, kódformattálás ellenőrzése Prettier\footnote{\url{https://prettier.io/}} használatával, valamint a webalkalmazás lebuildelése. A 3 lépés hibátlan lefutása jelzi azt, hogy a változtatások után a webalkalmazás telepíthető lesz az S3-vödörbe.
 
-\section{Média-erőforrások objektumtárolói}
+Egy másik folyamat pedig a Pull Request elfogadása és a \verb|main| branchbe való beolvasztása után indul el, amely a \verb|deploy-client.yml| néven található. A \ref{lst:deployClient}. kódrészlet mutatja be a kódjának fontos részletét. Két \verb|job| jellemzi a folyamatot, amelyből a második, a konkrét telepítés függ az előző lefutásától, valamint kézzel kell elindítani, amint készen áll (ezt az \verb|environment: production| sor valósítja meg). Az elkészült teljes csomag a Node.js 20-as verziójával buildelődik, majd pedig az elkészült alkalmazás csomagja artifaktként kerül átadásra a következő jobnak. Letöltés után a telepítő szkript az AWS CLI segítségével a megadott S3-vödörbe tölti fel a fájlokat. A \verb|aws s3 sync| parancs használatával a fájlok feltöltése előtt törli a vödörből azokat a fájlokat, amelyek már nem találhatóak meg a buildelt fájlok között, így biztosítva azt, hogy mindig csak a legfrissebb fájlok kerüljenek ki a vödörbe.
 
-TODO: Hogy lettek felkonfigurálva és miért az egyes S3 bucket-ok (bucket policy, CORS policy).
+A GitHub Actionból való AWS-hez való hozzáférést egy külön kompozit akció valósítja meg (\verb|setup-aws| néven), amely a \verb|aws-actions/configure-aws-credentials| GitHub Marketplace-en publikált akciójának 4-es verzióját használja. Ez az akció a megadott AWS IAM-szerepkörhöz tartozó hitelesítő adatokat állítja be a környezeti változókban, amelyeket a következő lépésben használhatunk.
 
-\section{A MediaLive és MediaPackage bekötése}
+A szerepkör, amelyet a környezet felvesz a \verb|github-oidc-pipeline| névre hallgat. Ezt a szerepkört az infra-bootstrap alprojektből telepítettem korábban az AWS-fiókba. A szerepkört úgy konfiguráltam be, hogy csupán a teljes projektet tároló streamzen-monorepo nevű GitHub-repository számára adjon jogosultságot, azaz csak az innen futó GitHub Actionök tudják felvenni a szerepkört. Ez a szerepkör az, amelyet \ref{sec:config} alfejezet is a tervekben bemutatott, amely OIDC nyomán kap hozzáférést.
 
-TODO: Az Elemental stack részeinek felkonfigurálása, a MediaLive channel és a MediaPackage channel felépítése, a MediaPackage endpoint konfigurálása. Miként kerül kiszolgálásra, melyiket mire használom. OBS bekötésének módja.
+\begin{minipage}{0.92\textwidth}
+  \begin{lstlisting}[
+  caption=Részlet a deploy-client.yml fájl tartalmából.,
+  label=lst:deployClient,
+  style=yaml,
+  basicstyle=\fontsize{10}{12}\ttfamily
+]
+build:
+  runs-on: ubuntu-latest
+  defaults:
+    run:
+      working-directory: client
+  steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20.x
+    - name: Install dependencies
+      run: corepack enable && yarn install
+    - name: Build
+      run: yarn build
+    - name: Save bundle
+      uses: actions/upload-artifact@v4
+      with:
+        name: bundle
+        path: ./client/dist/
+deploy:
+  runs-on: ubuntu-latest
+  needs: build
+  environment: production
+  steps:
+    - name: Download bundle
+      uses: actions/download-artifact@v4
+      with:
+        name: bundle
+        path: /tmp/bundle/dist/
+    - name: Setup AWS
+      uses: ./.github/actions/setup-aws
+    - name: Deploy
+      run: aws s3 sync --delete /tmp/bundle/dist s3://streamzen-static-frontend-dev-bucket
+\end{lstlisting}
+\end{minipage}

@@ -27,6 +27,9 @@ TODO: A VPC-beli (Virtual Private Cloud) subnetek, a security groupok, route tá
   \label{fig:roles}
 \end{figure}
 
+TODO: alternatíva a NATGW-vel. Lehettek volna VPC Endpointok pl. így: https://www.cloudkeeper.com/insights/blog/how-optimize-vpc-endpoint-amazon-ecr-images Probléma: az ECS nem tud auth.sch-ra hívni, mert privát subnetben van. Ezért kikerül a privát subnetből, ezért nem lesz a VPCE-kre se szükség :c ugyanis a NAT Gateway nagyon drága volna, most nincs humorom azt üzemeltetni :/
+Rohadtul nem biztonságos, de public subnetbe tettem az ECS taskot, hogy tudjon pullolni image-et. VPC Endpoint és a NAT Gateway havi 30 dolláromba fájna.
+
 \section{A Node.js alkalmazás fejlesztése}
 
 TODO: Az elkészült alkalmazás felépítése, a különböző rétegek, a routing, a middleware-ek, a kontrollerek, a service-ek, a REST API.
@@ -97,6 +100,43 @@ TODO: Az ECS orkesztrációs toolsetjének kialakítása, a konténer rétegződ
 TODO: Milyen IAM role-okat kellett feltenni rá, mikkel kommunikál kifelé, mi indokolta, hogy publikus subnetbe kerüljön. Hogy hív meg más külső rácsatlakozó erőforrásokat (S3 bucket, RDS instance, Lambda függvény, MediaLive channel).
 
 TODO: Jumpbox használata, illetve miért került ki, hol volt egy hibázás a Dockerfile-lal.
+
+\begin{minipage}{0.92\textwidth}
+  \begin{lstlisting}[
+  caption=Dockerfile tartalma.,
+  label=lst:dockerfile,
+  style=dockerfile,
+  basicstyle=\fontsize{10}{12}\ttfamily
+]
+# Stage 1: Build the application
+FROM node:20-alpine AS build
+ENV NODE_ENV=development
+WORKDIR /app
+COPY package.json ./
+COPY yarn.lock ./
+COPY .yarnrc.yml ./
+COPY prisma ./prisma/
+RUN corepack enable
+RUN yarn install
+COPY . .
+RUN npx prisma generate
+RUN yarn build
+
+# Stage 2: Create a lightweight container with the built app
+FROM node:20-alpine AS production
+ENV NODE_ENV=production
+WORKDIR /app
+COPY --from=build /app/dist ./dist
+COPY --from=build /app/package.json ./package.json
+COPY --from=build /app/yarn.lock ./yarn.lock
+COPY --from=build /app/.yarnrc.yml ./.yarnrc.yml
+COPY --from=build /app/prisma ./prisma
+RUN corepack enable
+RUN yarn install --immutable
+RUN npx prisma generate
+CMD ["npm", "run", "start:migrate:prod"]
+\end{lstlisting}
+\end{minipage}
 
 \subsection{A szerveralkalmazás CI/CD folyamatai}
 

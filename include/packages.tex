@@ -3,15 +3,15 @@
 \usepackage{ifluatex}
 \newif\ifxetexorluatex % a new conditional starts as false
 \ifnum 0\ifxetex 1\fi\ifluatex 1\fi>0
-	\xetexorluatextrue
+  \xetexorluatextrue
 \fi
 
 \ifxetexorluatex
-	\usepackage{fontspec}
+  \usepackage{fontspec}
 \else
-	\usepackage[T1]{fontenc}
-	\usepackage[utf8]{inputenc}
-	\usepackage[lighttt]{lmodern}
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage[lighttt]{lmodern}
 \fi
 
 \usepackage[english,magyar]{babel} % Alapértelmezés szerint utoljára definiált nyelv lesz aktív, de később külön beállítjuk az aktív nyelvet.
@@ -38,24 +38,24 @@
 \usepackage[hang]{caption}
 
 \newcommand{\selecthungarian}{
-	\selectlanguage{magyar}
-	\setlength{\parindent}{2em}
-	\setlength{\parskip}{0em}
-	\frenchspacing
+  \selectlanguage{magyar}
+  \setlength{\parindent}{2em}
+  \setlength{\parskip}{0em}
+  \frenchspacing
 }
 
 \newcommand{\selectenglish}{
-	\selectlanguage{english}
-	\setlength{\parindent}{0em}
-	\setlength{\parskip}{0.5em}
-	\nonfrenchspacing
-	\renewcommand{\figureautorefname}{Figure}
-	\renewcommand{\tableautorefname}{Table}
-	\renewcommand{\partautorefname}{Part}
-	\renewcommand{\chapterautorefname}{Chapter}
-	\renewcommand{\sectionautorefname}{Section}
-	\renewcommand{\subsectionautorefname}{Section}
-	\renewcommand{\subsubsectionautorefname}{Section}
+  \selectlanguage{english}
+  \setlength{\parindent}{0em}
+  \setlength{\parskip}{0.5em}
+  \nonfrenchspacing
+  \renewcommand{\figureautorefname}{Figure}
+  \renewcommand{\tableautorefname}{Table}
+  \renewcommand{\partautorefname}{Part}
+  \renewcommand{\chapterautorefname}{Chapter}
+  \renewcommand{\sectionautorefname}{Section}
+  \renewcommand{\subsectionautorefname}{Section}
+  \renewcommand{\subsubsectionautorefname}{Section}
 }
 
 \usepackage[numbers]{natbib}
@@ -84,7 +84,7 @@
 \definecolor{editorGray}{rgb}{0.95, 0.95, 0.95}
 \definecolor{editorOcher}{rgb}{1, 0.5, 0}
 \definecolor{editorGreen}{rgb}{0, 0.5, 0}
-\definecolor{orange}{rgb}{1,0.45,0.13}		
+\definecolor{orange}{rgb}{1,0.45,0.13}
 \definecolor{olive}{rgb}{0.17,0.59,0.20}
 \definecolor{brown}{rgb}{0.69,0.31,0.31}
 \definecolor{purple}{rgb}{0.38,0.18,0.81}
@@ -111,165 +111,177 @@
 
 % general settings for listing
 \lstset{
-    basicstyle=\normalsize\ttfamily,
-    basewidth  = {.5em,0.4em},
-    captionpos=t,
-    lineskip={2pt},
-    backgroundcolor=\color{white},
-    framextopmargin=6pt,
-    framexrightmargin=0.9em,
-    framexleftmargin=0.9em,    
-    framexbottommargin=6pt, 
-    frame=tb,
-		framerule=0pt,    
-    framesep=6.5mm,
-    fillcolor=\color{white},
-    rulecolor=\color{middlegray},
-    numbers=left,
-    numberstyle=\normalfont\color{middlegray},
-    numbersep=16pt,
-    abovecaptionskip=-5pt, %space above the caption
-    belowcaptionskip=10pt, %space below the caption
-    extendedchars=true,
-    showstringspaces=false,
-    showspaces=false,
-    stepnumber=1, % the step between two line-numbers. If it is 1 each line will be numbered
-    tabsize=2,
-    breaklines=true,
-    showtabs=false,
-    upquote=true,
-    % German umlauts
-    literate=%
-    {Ö}{{\"O}}1
-    {Ä}{{\"A}}1
-    {Ü}{{\"U}}1
-    {ß}{{\ss}}1
-    {ü}{{\"u}}1
-    {ä}{{\"a}}1
-    {ö}{{\"o}}1
+basicstyle=\normalsize\ttfamily,
+basewidth  = {.5em,0.4em},
+captionpos=t,
+lineskip={2pt},
+backgroundcolor=\color{white},
+framextopmargin=6pt,
+framexrightmargin=0.9em,
+framexleftmargin=0.9em,
+framexbottommargin=6pt,
+frame=tb,
+framerule=0pt,
+framesep=6.5mm,
+fillcolor=\color{white},
+rulecolor=\color{middlegray},
+numbers=left,
+numberstyle=\normalfont\color{middlegray},
+numbersep=16pt,
+abovecaptionskip=-5pt, %space above the caption
+belowcaptionskip=10pt, %space below the caption
+extendedchars=true,
+showstringspaces=false,
+showspaces=false,
+stepnumber=1, % the step between two line-numbers. If it is 1 each line will be numbered
+tabsize=2,
+breaklines=true,
+showtabs=false,
+upquote=true,
+% German umlauts
+literate=%
+  {Ö}{{\"O}}1
+{Ä}{{\"A}}1
+{Ü}{{\"U}}1
+{ß}{{\ss}}1
+{ü}{{\"u}}1
+{ä}{{\"a}}1
+{ö}{{\"o}}1
 }
 
 % define language
 \lstdefinelanguage{JavaScript}{
-    keywords={typeof, new, true, false, catch, then, function, return, null, catch, switch, var, if, in, while, do, else, case, break, default},
-    keywordstyle=\color{editorGreen}\bfseries,
-    ndkeywords={class, export, boolean, throw, implements, import, this, const},
-    ndkeywordstyle=\color{vscodeblue}\bfseries,
-    identifierstyle=\color{black},
-    sensitive=false,
-    comment=[l]{//},
-    morecomment=[s]{/*}{*/},
-    commentstyle=\color{editorGreen}\ttfamily,
-    stringstyle=\color{darkred}\ttfamily,
-    morestring=[b]',
-    morestring=[b]"
+  keywords={typeof, new, true, false, catch, then, function, return, null, catch, switch, var, if, in, while, do, else, case, break, default},
+  keywordstyle=\color{editorGreen}\bfseries,
+  ndkeywords={class, export, boolean, throw, implements, import, this, const},
+  ndkeywordstyle=\color{vscodeblue}\bfseries,
+  identifierstyle=\color{black},
+  sensitive=false,
+  comment=[l]{//},
+  morecomment=[s]{/*}{*/},
+  commentstyle=\color{editorGreen}\ttfamily,
+  stringstyle=\color{darkred}\ttfamily,
+  morestring=[b]',
+  morestring=[b]"
 }
 
 \lstdefinelanguage{SQL}{
-    keywords={select, where, from},
-    keywordstyle=\color{editorGreen}\bfseries,
-    ndkeywords={},
-    ndkeywordstyle=\color{vscodeblue}\bfseries,
-    identifierstyle=\color{black},
-    sensitive=false,
-    comment=[l]{--},
-    morecomment=[s]{/*}{*/},
-    commentstyle=\color{editorGreen}\ttfamily,
-    stringstyle=\color{darkred}\ttfamily,
-    morestring=[b]',
-    morestring=[b]"
+  keywords={select, where, from},
+  keywordstyle=\color{editorGreen}\bfseries,
+  ndkeywords={},
+  ndkeywordstyle=\color{vscodeblue}\bfseries,
+  identifierstyle=\color{black},
+  sensitive=false,
+  comment=[l]{--},
+  morecomment=[s]{/*}{*/},
+  commentstyle=\color{editorGreen}\ttfamily,
+  stringstyle=\color{darkred}\ttfamily,
+  morestring=[b]',
+  morestring=[b]"
 }
 
 
 \lstdefinelanguage{HTML5}{
   language=html,
-  sensitive=true,	
-  alsoletter={<>=-},	
+  sensitive=true,
+  alsoletter={<>=-},
   morecomment=[s]{<!-}{-->},
   tag=[s],
   otherkeywords={
-  % General
-  >,
-  % Standard tags
-	<!DOCTYPE,
-  </html, <html, <head, <title, </title, <style, </style, <link, </head, <meta, />,
-	% body
-	</body, <body,
-	% Divs
-	</div, <div, </div>, 
-	% Paragraphs
-	</p, <p, </p>,
-	% scripts
-	</script, <script,
-  % More tags...
-  <canvas, /canvas>, <svg, <rect, <animateTransform, </rect>, </svg>, <video, <source, <iframe, </iframe>, </video>, <image, </image>, <header, </header, <article, </article
-  },
+      % General
+      >,
+      % Standard tags
+      <!DOCTYPE,
+      </html, <html, <head, <title, </title, <style, </style, <link, </head, <meta, />,
+      % body
+      </body, <body,
+      % Divs
+      </div, <div, </div>,
+      % Paragraphs
+      </p, <p, </p>,
+      % scripts
+      </script, <script,
+      % More tags...
+      <canvas, /canvas>, <svg, <rect, <animateTransform, </rect>, </svg>, <video, <source, <iframe, </iframe>, </video>, <image, </image>, <header, </header, <article, </article
+    },
   ndkeywords={
-  % General
-  =,
-  % HTML attributes
-  charset=, src=, id=, width=, height=, style=, type=, rel=, href=,
-  % SVG attributes
-  fill=, attributeName=, begin=, dur=, from=, to=, poster=, controls=, x=, y=, repeatCount=, xlink:href=,
-  % properties
-  margin:, padding:, background-image:, border:, top:, left:, position:, width:, height:, margin-top:, margin-bottom:, font-size:, line-height:,
-	% CSS3 properties
-  transform:, -moz-transform:, -webkit-transform:,
-  animation:, -webkit-animation:,
-  transition:,  transition-duration:, transition-property:, transition-timing-function:,
-  }
+      % General
+      =,
+      % HTML attributes
+      charset=, src=, id=, width=, height=, style=, type=, rel=, href=,
+      % SVG attributes
+      fill=, attributeName=, begin=, dur=, from=, to=, poster=, controls=, x=, y=, repeatCount=, xlink:href=,
+      % properties
+      margin:, padding:, background-image:, border:, top:, left:, position:, width:, height:, margin-top:, margin-bottom:, font-size:, line-height:,
+      % CSS3 properties
+      transform:, -moz-transform:, -webkit-transform:,
+      animation:, -webkit-animation:,
+      transition:,  transition-duration:, transition-property:, transition-timing-function:,
+    }
 }
 
 \lstdefinelanguage{Terraform}{
-    keywords={terraform, variable, locals, output, module, resource, data, backend, true, false, var, local},
-    keywordstyle=\color{vscodegreen}\bfseries,
-    ndkeywords={lifecycle, provisioner, connection, length, lookup, merge, coalesce, zipmap, flatten, try, null, for, if, else, each, in, template_file, object, map, string, number, null_resource},
-    ndkeywordstyle=\color{darkraspberry}\bfseries,
-    identifierstyle=\color{black},
-    sensitive=false,
-    comment=[l]{\#},
-    commentstyle=\color{editorGreen}\ttfamily,
-    stringstyle=\color{darkred}\ttfamily,
-		moredelim=[s][]{\$\{}{\}},
-    morestring=[b]',
-    morestring=*[d]",
-		identifierstyle=\color{vscodeblue}\ttfamily,
+  keywords={terraform, variable, locals, output, module, resource, data, backend, true, false, var, local},
+  keywordstyle=\color{vscodegreen}\bfseries,
+  ndkeywords={lifecycle, provisioner, connection, length, lookup, merge, coalesce, zipmap, flatten, try, null, for, if, else, each, in, template_file, object, map, string, number, null_resource},
+  ndkeywordstyle=\color{darkraspberry}\bfseries,
+  identifierstyle=\color{black},
+  sensitive=false,
+  comment=[l]{\#},
+  commentstyle=\color{editorGreen}\ttfamily,
+  stringstyle=\color{darkred}\ttfamily,
+  moredelim=[s][]{\$\{}{\}},
+  morestring=[b]',
+  morestring=*[d]",
+  identifierstyle=\color{vscodeblue}\ttfamily,
+}
+
+\lstdefinelanguage{Dockerfile}{
+  keywords={FROM, RUN, COPY, ADD, ENTRYPOINT, CMD,  ENV, ARG, WORKDIR, EXPOSE, LABEL, USER, VOLUME, STOPSIGNAL, ONBUILD, MAINTAINER, HEALTHCHECK},
+  keywordstyle=\color{blue}\bfseries,
+  identifierstyle=\color{black},
+  sensitive=false,
+  comment=[l]{\#},
+  commentstyle=\color{purple}\ttfamily,
+  stringstyle=\color{red}\ttfamily,
+  morestring=[b]',
+  morestring=[b]"
 }
 
 \lstdefinestyle{html} {%
-  % Code design
-  keywordstyle=\color{lightblack}\bfseries,
-  ndkeywordstyle=\color{lightblack}\bfseries,
-  identifierstyle=\color{lightblack},
-  commentstyle=\color{green}\ttfamily,
-  stringstyle=\color{darkred}\ttfamily,
-  % Code
-  language=HTML5,
+% Code design
+keywordstyle=\color{lightblack}\bfseries,
+ndkeywordstyle=\color{lightblack}\bfseries,
+identifierstyle=\color{lightblack},
+commentstyle=\color{green}\ttfamily,
+stringstyle=\color{darkred}\ttfamily,
+% Code
+language=HTML5,
 %  alsolanguage=JavaScript,
-  alsodigit={.:;},	
-  tabsize=2,
-  showtabs=false,
-  showspaces=false,
-  showstringspaces=false,
-  extendedchars=true,
-  breaklines=true,
-  % German umlauts
-  literate=%
+alsodigit={.:;},
+tabsize=2,
+showtabs=false,
+showspaces=false,
+showstringspaces=false,
+extendedchars=true,
+breaklines=true,
+% German umlauts
+literate=%
   {Ö}{{\"O}}1
-  {Ä}{{\"A}}1
-  {Ü}{{\"U}}1
-  {ß}{{\ss}}1
-  {ü}{{\"u}}1
-  {ä}{{\"a}}1
-  {ö}{{\"o}}1
+{Ä}{{\"A}}1
+{Ü}{{\"U}}1
+{ß}{{\ss}}1
+{ü}{{\"u}}1
+{ä}{{\"a}}1
+{ö}{{\"o}}1
 }
 
-\lstdefinelanguage{CSS} 
-{morekeywords={color,background,margin,padding,margin,padding,font,weight,display,position,top,left,right,bottom,list,style,border,size,white,space,min,width, 	transition}, 
-	sensitive=false, 
-	morecomment=[l]{//}, 
-	morecomment=[s]{/*}{*/}, 
-	morestring=[b]", 
+\lstdefinelanguage{CSS}
+{morekeywords={color,background,margin,padding,margin,padding,font,weight,display,position,top,left,right,bottom,list,style,border,size,white,space,min,width, 	transition},
+  sensitive=false,
+  morecomment=[l]{//},
+  morecomment=[s]{/*}{*/},
+  morestring=[b]",
 }
 
 \lstdefinestyle{css} {%
@@ -285,9 +297,23 @@
   language=Terraform
 }
 
+\lstdefinestyle{dockerfile} {
+  language=Dockerfile
+}
+
+\lstdefinestyle{yaml}{
+  basicstyle=\color{blue}\footnotesize,
+  rulecolor=\color{black},
+  string=[s]{'}{'},
+  stringstyle=\color{blue},
+  comment=[l]{:},
+  commentstyle=\color{black},
+  morecomment=[l]{-}
+}
+
 \lstdefinestyle{sql} {
   language=SQL,
-  keywordstyle=\color{azure}  
+  keywordstyle=\color{azure}
 }
 
 % Hyphenation rules

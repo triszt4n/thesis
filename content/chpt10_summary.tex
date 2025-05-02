@@ -4,7 +4,24 @@ TODO: Tanulságok, a rendszer működésének és fejlesztési élmények érté
 
 \section{Továbbfejlesztés lehetőségei}
 
-TODO: Min lehetne javítani, mikroszolgáltatásos architektúra stb.
+TODO: Min lehetne javítani szoftverügyileg, mikroszolgáltatásos architektúra stb.
+
+TODO: Hogy lenne ez még profibb munka DevSecOps szempontból
+Logging minden szinten: WAF, Route53, Cloudfront access logs, ALB
+Athenával szűrni
+Dashboardok a bejövő forgalomra
+WAF fine-tuning, better botmgmt
+ALB-re reserved LCU plan, ha folytonos lenne a forgalom
+védettebb ECS cluster: privát subnet
+NAT gatewayjel
+Forgalom csekkolása: VPC Flow logs
+Most hogy vannak a cache behaviourok
+Ki vannak kapcsolva
+Videók egyedi hashelt pathon vannak, akár 1 évre lehetne őket cachelni
+Javascriptek 5min-nel mehetnének
+VPC Origin hátrányait ismertetni
+cross region és cross account nem műxik
+nem támogatja a grpc-t és a websocketet, ez eléggé bekorlátol (egyelőre)
 
 \subsection{Vendor lock-in jelensége}
 
