@@ -102,7 +102,7 @@ Ezek után telepítettem ebbe a projektbe a könnyebb fejlesztéshez szükséges
 
 A Vite.js képes fejlesztői módban indítani egy webszervert arra, hogy folyamatosan figyelje a fájlokat (úgynevezett \emph{watch mode}-ban), és ha változás történik, akkor újrabuildelje a fájlokat, és újraindítsa a webszervert.
 
-\subsection{A weboldal telepítésének CI/CD-folyamata}
+\subsection{A weboldal telepítésének CI/CD-folyamata}\label{sec:ciCd}
 
 Előkészítettem egy CI/CD-folyamatot \verb|lint-client.yml| néven a \verb|.github| mappa munkafolyamatai alatt, amely akkor fut le, ha a változtatások giten való feltöltése után készítünk egy Pull Requestet. Ez a munkafolyamat a következő lépéseket hajtja végre: statikus ellenőrzés ESLint\footnote{\url{https://eslint.org/}} használatával, kódformattálás ellenőrzése Prettier\footnote{\url{https://prettier.io/}} használatával, valamint a webalkalmazás lebuildelése. A 3 lépés hibátlan lefutása jelzi azt, hogy a változtatások után a webalkalmazás telepíthető lesz az S3-vödörbe.
 

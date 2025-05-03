@@ -8,6 +8,8 @@ A videók feltöltésére azok jogosultak, akik a stúdióba be tudnak lépni a 
 
 A \ref{lst:authCtx}. kódrészlet mutatja be a React-alkalmazásban használt \verb|AuthCtx| nevű kontextust, amely JSON Web Tokeneket (JWT) használ a bejelentkeztetés során a felhasználói adatok biztonságos és állapotmentes átpasszolására. A \verb|useMe| nevű hook az AuthSCH SSO API-ját használja a bejelentkezett felhasználó adatainak lekérdezésére, amelyet a \verb|/api/me| végponton keresztül érhetünk el. A \verb|AuthProvider| komponens biztosítja a kontextust az alkalmazás többi részének, és kezeli a bejelentkezést és kijelentkezést.
 
+TODO: befejezni.
+
 \begin{minipage}{0.92\textwidth}
   \begin{lstlisting}[
   caption=src/hooks/auth-context.tsx fájl tartalma.,
@@ -45,6 +47,37 @@ export function AuthProvider({ children }: PropsWithChildren) {
 \end{lstlisting}
 \end{minipage}
 
-\section{A MediaLive és MediaPackage bekötése}
+TODO: Szerveroldali controller.
 
-TODO: Az Elemental stack részeinek felkonfigurálása, a MediaLive channel és a MediaPackage channel felépítése, a MediaPackage endpoint konfigurálása. Miként kerül kiszolgálásra, melyiket mire használom. OBS bekötésének módja.
+\begin{minipage}{0.92\textwidth}
+  \begin{lstlisting}[
+    caption=Az AuthController osztály fontos függvényei.,
+    label=lst:authController,
+    style=js,
+    basicstyle=\fontsize{10}{12}\ttfamily
+  ]
+@UseGuards(AuthSchGuard)
+@Get("login")
+@ApiFoundResponse({
+  description: "Redirects to the AuthSch login page.",
+})
+login() {}
+
+@Get("callback")
+@UseGuards(AuthSchGuard)
+@ApiFoundResponse({
+  description: "Redirects to the frontend and sets cookie with JWT.",
+})
+@ApiQuery({ name: "code", required: true })
+oauthRedirect(@CurrentUser() user: UserDto, @Res() res: Response): void {
+  const jwt = this.authService.login(user)
+  res.cookie("jwt", jwt, {
+    httpOnly: true,
+    secure: true,
+    domain: process.env.NODE_ENV === "production" ? getHostFromUrl(process.env.FRONTEND_CALLBACK) : undefined,
+    maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
+  })
+  res.redirect(302, process.env.FRONTEND_CALLBACK + "?authenticated=true")
+}
+\end{lstlisting}
+\end{minipage}

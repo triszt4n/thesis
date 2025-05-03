@@ -1,10 +1,13 @@
 \chapter{Szerveroldali folyamatok implementációi}
 
-A megjelenítési réteg alatt található szerveroldali folyamatok implementációja során a kiszolgáló infrastruktúra kialakítására, a Node.js alkalmazás fejlesztésére, a konténerizált környezet kialakítására, valamint a videófeldolgozásra fókuszálunk ebben a fejezetben.
+A megjelenítési réteg alatt található szerveroldali folyamatok implementációja során a kiszolgáló infrastruktúra kialakítására, a Node.js-alkalmazás fejlesztésére, a konténerizált környezet kialakítására, valamint a videófeldolgozásra fókuszálunk ebben a fejezetben.
 
 \section{A virtuális privát felhő komponensei}
 
 TODO: A VPC-beli (Virtual Private Cloud) subnetek, a security groupok, route táblák. A biztonság vizsgálata.
+
+TODO: Ha már biztonság: alternatíva a NATGW-vel. Lehettek volna VPC Endpointok pl. így: https://www.cloudkeeper.com/insights/blog/how-optimize-vpc-endpoint-amazon-ecr-images Probléma: az ECS nem tud auth.sch-ra hívni, mert privát subnetben van. Ezért kikerül a privát subnetből, ezért nem lesz a VPCE-kre se szükség :c ugyanis a NAT Gateway nagyon drága volna, most nincs humorom azt üzemeltetni :/
+Rohadtul nem biztonságos, de public subnetbe tettem az ECS taskot, hogy tudjon pullolni image-et. VPC Endpoint és a NAT Gateway havi 30 dolláromba fájna.
 
 \begin{figure}[ht]
   \centering
@@ -13,12 +16,25 @@ TODO: A VPC-beli (Virtual Private Cloud) subnetek, a security groupok, route tá
   \label{fig:vpc}
 \end{figure}
 
+TODO: VPC-n kívüli dolgok, kivéve a MediaConvert részei, azokat a későbbi alfejezet fejti ki.
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=150mm, keepaspectratio]{figures/dipterv_nonvpc.png}
+  \caption{Részletes architektúraábra a VPC-ből kifelé és befelé kommunikáló komponensekkel.}
+  \label{fig:nonvpc}
+\end{figure}
+
+TODO: Jumpbox használata.
+
 \begin{figure}[ht]
   \centering
   \includegraphics[width=152mm, keepaspectratio]{figures/hostmgmt.png}
   \caption{A Host Management gyorstelepítési oldala.}
   \label{fig:hostmgmt}
 \end{figure}
+
+TODO: A komponensek által egymás jogosultságai, IAM szerepkörök, hogy miért van szükség rájuk, miképp kommunikálnak egymással. A különböző IAM-szerepkörök és azok jogosultságai a \ref{fig:roles}. ábrán láthatóak.
 
 \begin{figure}[ht]
   \centering
@@ -27,10 +43,7 @@ TODO: A VPC-beli (Virtual Private Cloud) subnetek, a security groupok, route tá
   \label{fig:roles}
 \end{figure}
 
-TODO: alternatíva a NATGW-vel. Lehettek volna VPC Endpointok pl. így: https://www.cloudkeeper.com/insights/blog/how-optimize-vpc-endpoint-amazon-ecr-images Probléma: az ECS nem tud auth.sch-ra hívni, mert privát subnetben van. Ezért kikerül a privát subnetből, ezért nem lesz a VPCE-kre se szükség :c ugyanis a NAT Gateway nagyon drága volna, most nincs humorom azt üzemeltetni :/
-Rohadtul nem biztonságos, de public subnetbe tettem az ECS taskot, hogy tudjon pullolni image-et. VPC Endpoint és a NAT Gateway havi 30 dolláromba fájna.
-
-\section{A Node.js alkalmazás fejlesztése}
+\section{A Node.js-alkalmazás fejlesztése}
 
 TODO: Az elkészült alkalmazás felépítése, a különböző rétegek, a routing, a middleware-ek, a kontrollerek, a service-ek, a REST API.
 
@@ -38,7 +51,53 @@ TODO: Itt lehet szó az adatbázisbeli entitásokról is.
 
 TODO: Kódrészletei. Kitérve arra, hogy miképp könnyíti a munkát a Prisma, milyen egyéb szolgáltatások kerültek be, mi a felépítése a reponak, miért választottam ezt a stacket.
 
-TODO: S3 bucketba való mentése a videónak egy érdekes rész.
+TODO: S3 bucketba való mentése a videónak egy érdekes rész. Két osztály két függvénye lásd lent.
+
+\begin{minipage}{0.92\textwidth}
+  \begin{lstlisting}[
+    caption=Videófeltöltés kezelése a VideoController osztályban.,
+    label=lst:videoController,
+    style=js,
+    basicstyle=\fontsize{10}{12}\ttfamily
+  ]
+@Post(":id/upload")
+@UseGuards(JwtGuard)
+@UseInterceptors(FileInterceptor("file"))
+async upload(
+  @Param("id") id: string,
+  @UploadedFile(new ParseFilePipe()) file: Express.Multer.File
+) {
+  const result = await this.videoService.upload(id, file.originalname, file.buffer)
+  return await this.videoService.afterUpload(id, result.fileName)
+}
+\end{lstlisting}
+\end{minipage}
+
+\begin{minipage}{0.92\textwidth}
+  \begin{lstlisting}[
+    caption=Videófeltöltés függvénye a VideoService osztályban.,
+    label=lst:videoService,
+    style=js,
+    basicstyle=\fontsize{10}{12}\ttfamily
+  ]
+private readonly s3Client = new S3Client({
+  region: this.configService.getOrThrow("AWS_S3_REGION"),
+})
+async upload(id: string, fileName: string, file: Buffer) {
+  const ext = fileName.split(".").slice(-1)[0]
+  const baseName = new Date().toISOString().slice(0, 19).replaceAll(":", "-")
+
+  const response = await this.s3Client.send(
+    new PutObjectCommand({
+      Bucket: this.configService.getOrThrow("AWS_S3_UPLOADED_BUCKET"),
+      Key: `${id}/${baseName}.${ext}`,
+      Body: file,
+    })
+  )
+  return { ...response, fileName: `${baseName}.${ext}` }
+}
+\end{lstlisting}
+\end{minipage}
 
 \section{A konténerizált környezet}
 
@@ -93,13 +152,13 @@ module "api" {
 \end{lstlisting}
 \end{minipage}
 
-\subsection{A Node.js szerveralkalmazás ECS-en}
+TODO: env varok magyarázata, honnan szerzed a value-t hozzá.
+
+\subsection{A Node.js-alkalmazás ECS-en}
 
 TODO: Az ECS orkesztrációs toolsetjének kialakítása, a konténer rétegződés felépítése ECS-ben, a konténer registry (ECR) bekötése. Környezeti változók, portok, ALB-re való kötése. Miből állt a dockerizálás nekem (Dockerfile, registry, image build, push, networking).
 
 TODO: Milyen IAM role-okat kellett feltenni rá, mikkel kommunikál kifelé, mi indokolta, hogy publikus subnetbe kerüljön. Hogy hív meg más külső rácsatlakozó erőforrásokat (S3 bucket, RDS instance, Lambda függvény, MediaLive channel).
-
-TODO: Jumpbox használata, illetve miért került ki, hol volt egy hibázás a Dockerfile-lal.
 
 \begin{minipage}{0.92\textwidth}
   \begin{lstlisting}[
@@ -138,10 +197,59 @@ CMD ["npm", "run", "start:migrate:prod"]
 \end{lstlisting}
 \end{minipage}
 
-\subsection{A szerveralkalmazás CI/CD folyamatai}
+\subsection{A szerveralkalmazás CI/CD-folyamatai}
 
-TODO: GitHub Actions a smoke tesztre, a deploymentre: Docker build és ECR-be telepítés.
+A kliensoldalon is került ismertetésre \ref{sec:ciCd} alfejezetben egy olyan GitHub Actions-alapú CI/CD-munkafolyamat, amely az AWS-fiókba lép be GitHub OIDC-t használva. Azonosképp a szerveroldali konténerkép telepítése a változtatások \verb|main| főágba való olvasztása után az ott ismertetett autentikációs módszerrel kerül feltöltésre AWS-re.
+
+Ennek a folyamatnak az esetében egyszerűbb volt a build- és telepítő folyamatot egybeépíteni, egy job végzi a kettőt. Ennek megfelelően a munkafolyamat miután megszerezte az AWS-fiókhoz hitelesítő adatokat, a következő lépéseket hajtja végre: belép az ECR-beli Docker Registrybe, majd a Docker-képfájlt buildeli, végül pedig feltölti a saját ECR-képtárolónkba. A \ref{lst:deployServer}. kódrészlet mutatja be a \verb|deploy-server.yml| fájl releváns részét, amely a kifejtett lépéseket hajtja végre.
+
+A szerveroldali Node.js-kód ellenőrzésére is készült egy GitHub Actions-munkafolyamat, amely a \verb|lint-server.yml| fájlban található és Pull Requestek létrehozásakor fut le. Ez a munkafolyamat a kliensoldali ellenőrzéshez hasonlóan a \verb|eslint| és a \verb|prettier| eszközöket használja a kód statikus ellenőrzésére és formázására. A munkafolyamat végén utolsó lépésként pedig az NPM-projekt buildelése van ellenőrzésképp.
+
+\begin{minipage}{0.92\textwidth}
+  \begin{lstlisting}[
+  caption=Részlet a deploy-server.yml fájl tartalmából.,
+  label=lst:deployServer,
+  style=yaml,
+  basicstyle=\fontsize{10}{12}\ttfamily
+]
+deploy:
+  runs-on: ubuntu-latest
+  environment: production
+  defaults:
+    run:
+      working-directory: server
+  steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    - name: Setup AWS
+      uses: ./.github/actions/setup-aws
+    - name: Login to ECR
+      run: aws ecr get-login-password --region eu-central-1 | docker login --username AWS --password-stdin 339713096573.dkr.ecr.eu-central-1.amazonaws.com
+    - name: Build image
+      run: docker build -t streamzen-api-repo-dev .
+    - name: Tag image
+      run: docker tag streamzen-api-repo-dev:latest 339713096573.dkr.ecr.eu-central-1.amazonaws.com/streamzen-api-repo-dev:latest
+    - name: Push image
+      run: docker push 339713096573.dkr.ecr.eu-central-1.amazonaws.com/streamzen-api-repo-dev:latest
+\end{lstlisting}
+\end{minipage}
 
 \section{Elemental MediaConvert felhasználása}
 
 TODO: Az Elemental MediaConvert API használata a Lambdából, illetve hogy hogy hívódik meg a Lambda, milyen triggerrel, milyen környezeti változókkal, milyen IAM role-al. Hogy kellett felkonfigurálni a MediaConvert job, hogy kellett magát a Lambdát felkonfigolni, hogy tudja is hívni.
+
+TODO: Az AWS-fiókra egyedileg generálódik egy MediaConvert HTTP-végpont, és ahhoz, hogy ezt megkapjuk, az AWS CLI segítségével hívni kell a következő parancsot: \verb|aws| \verb|mediaconvert| \verb|describe-endpoints|. Ezután a kapott URL-t bemásoltam a \verb|MEDIACONVERT_ENDPOINT| környezeti változóba, amelyet a job-starter Lambda-függvény használ.
+
+TODO: további env varok és felhasználása, esetleg kódrészlet a lambda javascriptből. Utána pedig képernyőkép a HLS-packetekről és méretéről.
+
+TODO: S3 noti resource TF-ben megemlíteni, job finalizer EventBrdige még érdekes lehet, de az env varokat legalább felsorolni, amikre szüksége van.
+
+TODO: referálni a \refstruc{fig:nonvpc} ábrára.
+
+\section{A MediaLive és MediaPackage összekötése}
+
+TODO: Az Elemental stack részeinek felkonfigurálása, a MediaLive channel és a MediaPackage channel felépítése, a MediaPackage endpoint konfigurálása. Miként kerül kiszolgálásra, melyiket mire használom. 
+
+TODO: OBS bekötésének módja. Példa az OBS futásról, képernyőképek. Tutorial innen volt: https://d2908q01vomqb2.cloudfront.net/fb644351560d8296fe6da332236b1f8d61b2828a/2020/04/14/Connecting-OBS-Studio-to-AWS-Media-Services-in-the-Cloud-v2.pdf
+
+TODO: referálni a \refstruc{fig:nonvpc} ábrára.
