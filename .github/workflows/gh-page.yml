@@ -15,6 +15,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install dependencies 🥚
         run: |
+          sudo apt-get update
           sudo apt-get install texlive-latex-base \
             texlive-extra-utils \
             texlive-latex-extra \
