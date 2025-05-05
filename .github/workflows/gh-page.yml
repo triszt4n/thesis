@@ -24,7 +24,7 @@ jobs:
             texlive-fonts-recommended \
             biber chktex latexmk
       - name: Compile LaTeX document
-        uses: xu-cheng/latex-action@v2
+        uses: xu-cheng/latex-action@v3
         with:
           root_file: thesis.tex
           latexmk_shell_escape: true
