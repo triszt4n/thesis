@@ -151,9 +151,9 @@ literate=%
 
 % define language
 \lstdefinelanguage{JavaScript}{
-  keywords={typeof, new, true, false, catch, then, function, return, null, catch, switch, var, if, in, while, do, else, case, break, default},
+  keywords={typeof, new, true, false, catch, then, function, return, catch, switch, var, if, in, while, do, else, case, break, default, this, process},
   keywordstyle=\color{editorGreen}\bfseries,
-  ndkeywords={class, export, boolean, throw, implements, import, this, const},
+  ndkeywords={class, export, boolean, throw, implements, import, from, const, async, await, private, public, readonly, static, constructor, get, set, yield, interface, type},
   ndkeywordstyle=\color{vscodeblue}\bfseries,
   identifierstyle=\color{black},
   sensitive=false,
@@ -162,7 +162,11 @@ literate=%
   commentstyle=\color{editorGreen}\ttfamily,
   stringstyle=\color{darkred}\ttfamily,
   morestring=[b]',
-  morestring=[b]"
+  morestring=[b]",
+  morestring=*[d]`,
+  moredelim=[s][]{\$\{}{\}},
+  morekeywords=[3]{@UseGuards, @ApiFoundResponse, @ApiQuery, @Controller, @Injectable, @Module, @Inject, @Body, @Param, @Query, @UseInterceptors, @UseFilters, @UploadedFile, @UsePipes, @Get, @Post, @Put, @Delete, @Patch, @CurrentUser, @Res, @Next, @Headers, @Session, @Request, @All, string, number, null, void, undefined},
+  keywordstyle={[3]\color{darkraspberry}\bfseries}
 }
 
 \lstdefinelanguage{SQL}{
@@ -224,8 +228,7 @@ literate=%
   keywords={terraform, variable, locals, output, module, resource, data, backend, true, false, var, local},
   keywordstyle=\color{vscodegreen}\bfseries,
   ndkeywords={lifecycle, provisioner, connection, length, lookup, merge, coalesce, zipmap, flatten, try, null, for, if, else, each, in, template_file, object, map, string, number, null_resource},
-  ndkeywordstyle=\color{darkraspberry}\bfseries,
-  identifierstyle=\color{black},
+  ndkeywordstyle=\color{vscodeblue}\bfseries,
   sensitive=false,
   comment=[l]{\#},
   commentstyle=\color{editorGreen}\ttfamily,
@@ -233,17 +236,17 @@ literate=%
   moredelim=[s][]{\$\{}{\}},
   morestring=[b]',
   morestring=*[d]",
-  identifierstyle=\color{vscodeblue}\ttfamily,
+  identifierstyle=\color{black}\ttfamily,
 }
 
 \lstdefinelanguage{Dockerfile}{
   keywords={FROM, RUN, COPY, ADD, ENTRYPOINT, CMD,  ENV, ARG, WORKDIR, EXPOSE, LABEL, USER, VOLUME, STOPSIGNAL, ONBUILD, MAINTAINER, HEALTHCHECK},
-  keywordstyle=\color{blue}\bfseries,
+  keywordstyle=\color{vscodeblue}\bfseries,
   identifierstyle=\color{black},
   sensitive=false,
   comment=[l]{\#},
-  commentstyle=\color{purple}\ttfamily,
-  stringstyle=\color{red}\ttfamily,
+  commentstyle=\color{editorGreen}\ttfamily,
+  stringstyle=\color{darkred}\ttfamily,
   morestring=[b]',
   morestring=[b]"
 }
@@ -284,7 +287,31 @@ literate=%
   morestring=[b]",
 }
 
-\lstdefinestyle{css} {%
+\newcommand\YAMLcolonstyle{\color{darkred}\mdseries}
+\newcommand\YAMLkeystyle{\color{black}\bfseries}
+\newcommand\YAMLvaluestyle{\color{vscodeblue}\mdseries}
+
+\lstdefinelanguage{YAML}{
+keywords={true,false,null,y,n},
+keywordstyle=\color{darkgray}\bfseries,
+basicstyle=\YAMLkeystyle,                                 % assuming a key comes first
+sensitive=false,
+comment=[l]{\#},
+morecomment=[s]{/*}{*/},
+commentstyle=\color{editorGreen}\ttfamily,
+stringstyle=\YAMLvaluestyle\ttfamily,
+moredelim=[l][\color{orange}]{\&},
+moredelim=[l][\color{magenta}]{*},
+moredelim=**[il][\YAMLcolonstyle{:}\YAMLvaluestyle]{:},   % switch to value style at :
+morestring=[b]',
+morestring=[b]",
+literate =    {---}{{\ProcessThreeDashes}}3
+{>}{{\textcolor{red}\textgreater}}1
+{|}{{\textcolor{red}\textbar}}1
+{\ -\ }{{\mdseries\ -\ }}3,
+}
+
+\lstdefinestyle{css} {
   language=CSS,
   keywordstyle=\color{lightblack},
 }
@@ -301,14 +328,8 @@ literate=%
   language=Dockerfile
 }
 
-\lstdefinestyle{yaml}{
-  basicstyle=\color{blue}\footnotesize,
-  rulecolor=\color{black},
-  string=[s]{'}{'},
-  stringstyle=\color{blue},
-  comment=[l]{:},
-  commentstyle=\color{black},
-  morecomment=[l]{-}
+\lstdefinestyle{yaml} {
+  language=YAML
 }
 
 \lstdefinestyle{sql} {

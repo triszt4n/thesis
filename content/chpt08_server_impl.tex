@@ -47,13 +47,22 @@ A hálózat építése tégláról téglára került kivitelezésre, a fejleszt�
 
 \section{A Node.js-alkalmazás fejlesztése}
 
-TODO: Az elkészült alkalmazás felépítése, a különböző rétegek, a routing, a middleware-ek, a kontrollerek, a service-ek, a REST API.
+A NestJS keretrendszerben írt Node.js-alkalmazások modulokra bomlanak, az egyes modulok \emph{controller} rétegre és \emph{service} rétegre válnak ketté, a javaslat, hogy az előbbi réteg osztályaiban a forgalomirányítást valósítsuk meg, a későbbiben pedig a konkrét szolgáltatásszintű üzleti logikát, a számításokat, adattisztítást, adatelérést valósítsuk meg. A modulok implementációjában az egyes \emph{service} és \emph{controller} típusú osztályok példányainak beinjektálását, illetve azok életciklusáról való gondoskodást a NestJS által biztosított Dependency Injection (DI) rendszer valósítja meg.
+
+Az elkészült webszerver-alkalmazás egy REST API-t valósít meg. A benne kialakításra került modulok a következő funkciókat látják el:
+
+\begin{enumerate}
+  \item \verb|AuthModule|: A felhasználók azonosításáért és jogosultságkezeléséért felelős modul.
+  \item \verb|PrismaModule|: Csupán behúzza a rendszerbe a projektbe telepített Prisma ORM-et mint service.
+  \item \verb|UsersModule|: A felhasználók kezeléséért felelős modul, amely a felhasználók CRUD-műveleteit valósítja meg.
+  \item \verb|VideoModule|: A videók kezeléséért felelős modul, amely a videók feltöltését és metaadatainak kezelését valósítja meg.
+\end{enumerate}
 
 \subsection{Az adatbázisséma}
 
 A \refstruc{fig:prismaliser} mutatja be a Prisma-ban írt Prisma-sémát. A séma tartalmaz jövőbeli felhasználásra szánt elemeket, az egyszerűségre törekszik a séma, csupán a lényeges adatokat tároljuk le.
 
-\begin{figure}[!ht]
+\begin{figure}[ht!]
   \centering
   \includegraphics[width=155mm, keepaspectratio]{figures/prismaliser.png}
   \caption{A Prisma-séma vizuális reprezentációja.}
@@ -66,7 +75,7 @@ A Vod entitás a feltöltött videók metaadataid reprezentálja. A Vod entitás
 
 A CrewMembership entitáshoz tartozó tábla a Vod és a User entitások közötti illesztő tábla (angolul \emph{join table}), saját attribútumokat tud ehhez a kapcsolathoz hozzáadni, kardinalitás szempontjából egy CrewMembershipnek csak egy Usert és csak egy Vodot kell kötnie. Egy Vodnak persze több CrewMembershipje is lehet, ugyanígy Usernek is. Ez az entitás és a ViewCounter -- amely a megtekintések számlálóját lett volna hivatott reprezentálni -- aktívan nem került felhasználásra a fejlesztés során, tervezésben maradt csupán, nem volt esszenciális a végső cél megvalósításához.
 
-\subsection{Környezeti változók}
+\subsection{Környezeti változók}\label{sec:envvars}
 
 Az alkalmazásnak korábbi alfejezetekben már kiderült, hogy vannak külső függőségei. Ezen függőségekhez való hozzáféréshez a környezeti változók használata elengedhetetlen. A ECS-ben futó konténer környezeti változóinak beállítására az ECS is ad lehetőséget a \ref{lst:mainApi}. kódrészlet mutatja be a Terraform-kód egy részletét, amely átpasszolja az alkalmazás számára a következő fontos paramétereket.
 
@@ -78,7 +87,7 @@ Az alkalmazásnak tudnia kell bizonyos átirányítások lekezelésére a kliens
 
 Ezenkívül még szükség van egy titkos kulcsra, amely a JWT-tokenek aláírására szolgál (\verb|JWT_SECRET|), ezt is SSM Param Store-ból szerzi be az alkalmazásunk, illetve ezt is már én töltöttem be, miután kézzel generáltam egyet.
 
-A feltöltött videókat tároló S3-vödör nevét (\verb|AWS_S3_UPLOADED_BUCKET|) az általam kitalált nevezéktani konvenciók alapján töltöm be, illetve az S3-vödör régióját (\verb|AWS_S3_REGION|) pedig természetesen arra a régióra állítom, ahová az erőforrások főképp telepítésre kerültek (és ahova az S3-vödör is került). 
+A feltöltött videókat tároló S3-vödör nevét (\verb|AWS_S3_UPLOADED_BUCKET|) az általam kitalált nevezéktani konvenciók alapján töltöm be, illetve az S3-vödör régióját (\verb|AWS_S3_REGION|) pedig természetesen arra a régióra állítom, ahová az erőforrások főképp telepítésre kerültek (és ahova az S3-vödör is került).
 
 \begin{minipage}{0.92\textwidth}
   \begin{lstlisting}[
@@ -160,20 +169,22 @@ A VideoService az AWS SDK S3 API-ját használja a fájlok vödörbe való felt�
 
 \section{A konténerizált környezet}
 
-TODO: Leírás, hogy miért választottam a konténerizált környezetet, a konténerizálás előnyeit, hátrányait. Hogy használható ki a legjobban a konténerizáció az Application Load Balancer-rel együtt. Miképp kapcsoltam ezt a kettőt össze (ECS service, ALB).
+A konténerizált webalkalmazás kialakítására a Docker ökoszisztémájának eszközeit vettem alkalmazásba. A fejlesztés során a Docker Desktop alkalmazást használtam, amely lehetővé tette a konténerek helyi futtatását, a Docker Compose segítségével pedig a Node.js-alkalmazás mellé felvettem egy PostgreSQL-adatbázis konténerét is, azok között a Compose-kóddal a konténerek közötti kommunikációt is könnyen meg tudtam valósítani.
 
-TODO: Az ECS orkesztrációs toolsetjének kialakítása, a konténer rétegződés felépítése ECS-ben, a konténer registry (ECR) bekötése. Környezeti változók, portok, ALB-re való kötése. Miből állt a dockerizálás nekem (Dockerfile, registry, image build, push, networking).
+Telepítésre a korábban is ismertetett módon az ECS szolgáltatásába került egy klaszterba a Node.js-alkalmazás. A felkonfiguráláshoz szükséges Terraform-kódot a \ref{lst:ecsCluster}. kódrészlet mutatja be. A klaszterba csupán egy szolgáltatás került be, a mi REST API-nkat kiszolgáló app. A szolgáltatás felépítő elemeit, azok működését a \refstruc{fig:ecscluster} is bemutatja.
 
-\begin{figure}[ht]
+\begin{figure}[ht!]
   \centering
-  \includegraphics[width=150mm, keepaspectratio]{figures/dipterv_ecs.png}
+  \includegraphics[width=100mm, keepaspectratio]{figures/dipterv_ecs.png}
   \caption{Az ECS-klaszter elemei.}
   \label{fig:ecscluster}
 \end{figure}
 
+Egy taszkdefiníciója van a teljes szolgáltatásnak, emiatt egyfajta taszk fog futni is, az fogja kitelepíteni a konkrét konténerpéldányokat. A taszk a konténerek képét természetesen a korábban ismertetett ECR-repository-ból tölti le, majd buildeli le. A konténerek erőforrásmenedzsmentjét a Fargate szolgáltatásra hagytam (lásd: \verb|launch type|). Az ECS-szolgáltatáshoz definiálja kapcsolatát az ALB-példánnyal (lásd: \verb|load balancer| blokk a Terraform-kódban), az ALB pedig képes automatikusan felderíteni a konkrét konténereket, azokra pedig ráirányítani a forgalmat.
+
 \begin{minipage}{0.92\textwidth}
   \begin{lstlisting}[
-    caption=Az ECS-klaszter és -szolgáltatás konfigurációja az api-stack modul alatti ecs.tf fájlban.,
+    caption=A klaszter és szolgáltatás Terraform-kódja.,
     label=lst:ecsCluster,
     style=tf,
     basicstyle=\fontsize{10}{12}\ttfamily
@@ -203,11 +214,11 @@ resource "aws_ecs_service" "this" {
 \end{lstlisting}
 \end{minipage}
 
-TODO: kicsi magyarázat arról, hogy mire jó a processing power állítgatása. Itt lehet már beállítani, hogy honnan jön az image, és beállítod az ECR-t.
+Az ECS egy orkesztrációs környezet is, a segítségével be tudjuk konfigurálni, hogy a konténerek miképp naplózzanak, milyen portokat nyissanak meg, milyen erőforrásokat használjanak, illetve milyen környezeti változókat kapjanak. A \ref{lst:ecsTask}. kódrészlet mutatja be a taszkdefiníciót. A taszkdefinícióban található \verb|container_definitions| blokkban található a konténerre vonatkozó beállítások többsége. Naplózásra az AWS CloudWatch Logs szolgáltatását használja a konténer.
 
 \begin{minipage}{0.92\textwidth}
   \begin{lstlisting}[
-    caption=Az ECS-taszk definíciója az api-stack modul alatti ecs.tf fájlban.,
+    caption=Az ECS-taszk Terraform-kódja.,
     label=lst:ecsTask,
     style=tf,
     basicstyle=\fontsize{10}{12}\ttfamily
@@ -244,7 +255,9 @@ resource "aws_ecs_task_definition" "this" {
 \end{lstlisting}
 \end{minipage}
 
-TODO: Milyen IAM role-okat kellett feltenni rá, mikkel kommunikál kifelé. Hogy hív meg más külső rácsatlakozó erőforrásokat (S3 bucket, RDS instance, Lambda függvény, MediaLive channel).
+Fontos két elemet kiemelni a \verb|aws_ecs_task_definition| attribútumaiból: ez a \verb|task_role_arn| és a \verb|execution_role_arn|. A \verb|execution_role_arn| az az IAM-szerepkör, amelyet az ECS-motor fog használni ahhoz, hogy AWS-en belüli hívásokat intézzen a felhasználó nevében, például a CloudWatch Logs szolgáltatásba való naplózásra vagy az ECR-ről való letöltésére a konténerképnek. A \verb|task_role_arn| pedig az a szerepkör, amelyet konkrétan a taszk kap meg, a Node.js-app fogja használni, például az S3-vödörbe való feltöltéshez.
+
+A szerveralkalmazás kódjának a telepítés szempontjából fontos része a Dockerfile, amely leírja a konténerkép felépítéséhez szükséges lépéseket. Ennek kódját mutatja be a \ref{lst:dockerfile}. kódrészlet.
 
 \begin{minipage}{0.92\textwidth}
   \begin{lstlisting}[
@@ -282,6 +295,8 @@ RUN npx prisma generate
 CMD ["npm", "run", "start:migrate:prod"]
 \end{lstlisting}
 \end{minipage}
+
+A Dockerfile két szakaszból áll, az első szakaszban a Node.js-alkalmazás buildelése történik csak meg -- standard Node.js-appokra jellemző folyamatot mutat be --, a második szakaszban pedig a buildelt alkalmazás kódja kerül átmásolásra kerül egy újabb Node.js-konténerbe, annak végén még a Prisma ORM-hez szükséges JavaScript-modulokat is legenerálja, az alapértelmezett parancs pedig, amely a konténer indulásakor a fő folyamatot indítja, az a \verb|npm| \verb|run| \verb|start:migrate:prod| parancs. Ezt a futtató parancsot a \verb|package.json| fájlban magam definiáltam, a Prisma ORM által biztosított migrációs eszközt hívja meg (\verb|prisma| \verb|migrate| \verb|deploy|), amely a PostgreSQL-adatbázisban migrációt hajt végre, létrehozza a megfelelő táblákat vagy frissíti azokat, aztán pedig indítja a Node.js folyamatát (\verb|node| \verb|dist/main|).
 
 \subsection{A szerveralkalmazás CI/CD-folyamatai}
 
@@ -322,23 +337,156 @@ deploy:
 
 \section{Elemental MediaConvert felhasználása}
 
-A videófeltöltés és live indítási alfolyamatai a rendszernek nem teljesen a Node.js-szerver által kerülnek koordinálásra, ezen folyamatok implementációi eseményvezérelt architektúrában kerültek kivitelezésre (\emph{event-drive architecture}, EDA). A feltöltés után 
+A videófeltöltés és live-indítás alfolyamatai a rendszernek implementációi eseményvezérelt architektúrában kerültek kivitelezésre (\emph{event-drive architecture}, EDA). Ennek az architektúrának egy eleme a Node.js-szerver is, amely a korábbi alfejezetekben került bemutatásra. A feltöltés megtörténik a Node.js REST API-ján keresztül, majd pedig beindul egy másodlagos folyamat, amely a feltöltött fájlok átkonvertálásáért felelős. A feltöltés az S3-vödrön egy \verb|"s3:ObjectCreated"| eseményt generál, amelyet egy Lambda-függvény kap el, a \verb|streamzen-job-starter-dev| (\refstruc{fig:nonvpc}).
 
-TODO: Az Elemental MediaConvert API használata a Lambdából, illetve hogy hogy hívódik meg a Lambda, milyen triggerrel, milyen környezeti változókkal, milyen IAM role-al. Hogy kellett felkonfigurálni a MediaConvert job, hogy kellett magát a Lambdát felkonfigolni, hogy tudja is hívni.
+A Lambda-függvény kódja összekomponálja az konvertáláshoz szükséges MediaConvert-job definícióját, amely a feltöltött fájlt átkonvertálja HLS-folyamba helyezhetővé, és az elkészült fájlokat egy S3-vödörbe helyezi el (\verb|streamzen-static-assets-dev-bucket|).
 
-TODO: Az AWS-fiókra egyedileg generálódik egy MediaConvert HTTP-végpont, és ahhoz, hogy ezt megkapjuk, az AWS CLI segítségével hívni kell a következő parancsot: \verb|aws| \verb|mediaconvert| \verb|describe-endpoints|. Ezután a kapott URL-t bemásoltam a \verb|MEDIACONVERT_ENDPOINT| környezeti változóba, amelyet a job-starter Lambda-függvény használ.
+\subsection{A MediaConvert-jobot indító Lambda-függvény}
 
-TODO: további env varok és felhasználása, esetleg kódrészlet a lambda javascriptből. Utána pedig képernyőkép a HLS-packetekről és méretéről.
+A függvénynek hat környezeti változót adtam meg, ezek mind kellenek a MediaConvert-job felépítésére, a legfontosabb kerülnek bemutatásra. Az AWS-fiókra egyedileg generálódik egy MediaConvert API HTTP-végpont, és ahhoz, hogy ezt megkapjuk, az AWS CLI segítségével hívni kell a következő parancsot: \verb|aws| \verb|mediaconvert| \verb|describe-endpoints|. A kapott URI-t a \verb|MEDIACONVERT_ENDPOINT| környezeti változóban passzolom át. Az \verb|IAM_ROLE_ARN| az IAM-szerepkör ARN-je, feljogosítja arra a függvényt, hogy CloudWatch-ba naplózzon és az \verb|OUTPUT_BUCKET_URI| és \verb|INPUT_BUCKET_URI| változókban jelölt kimeneti és bemeneti S3-vödrökben tudjon olvasni, létrehozni.
 
-TODO: S3 noti resource TF-ben megemlíteni, job finalizer EventBridge még érdekes lehet, de az env varokat legalább felsorolni, amikre szüksége van.
+A \ref{lst:jobStarterJs}. kódrészlet részletezi a fontos részeit a teljes függvény kódjának. A \verb|assembleJobCommand| függvény építi fel a MediaConvert API-ja számára a job paramétereit egy óriási JavaScript-objektumban. A következőket lehet leszűrni az objektumból:
 
-TODO: referálni a \refstruc{fig:nonvpc} ábrára.
+\begin{itemize}
+  \setlength{\itemsep}{1pt}
+  \setlength{\parskip}{0pt}
+  \setlength{\parsep}{0pt}
+  \item \textbf{Kimenetek száma}: 4
+        \begin{enumerate}
+          \setlength{\itemsep}{1pt}
+          \setlength{\parskip}{0pt}
+          \setlength{\parsep}{0pt}
+          \item Kimenet: 1080p képmagasság, max videóbitráta 10 Mbps, hangbitráta 256 kbps
+          \item Kimenet: 720p képmagasság, max videóbitráta 5 Mbps, hangbitráta 192 kbps
+          \item Kimenet: 480p képmagasság, max videóbitráta 2 Mbps, hangbitráta 128 kbps
+          \item Kimenet: 360p képmagasság, max videóbitráta 1 Mbps, hangbitráta 96 kbps
+        \end{enumerate}
+  \item \textbf{Kimenetekre azonos mozgóképtulajdonságok}: HLS formátum, H.264 kódolású, 6 másodperces szegmensek, \emph{Quality-Defined Variable Bitrate} (QVBR) bitráta\cite{qvbr}.
+  \item \textbf{Kimenetekre azonos hangtulajdonságok}: AAC kódolás, konstans bitráta (CBR), 48 kHz mintavételezés, 2 csatorna.
+\end{itemize}
 
-TODO: képernyőképek az appról használat közben.
+Minden más adat/konténertulajdonság, amit nem közöltem, az az alapértelmezett maradt vagy öröklődik a forrás videófájlból.
+
+\begin{minipage}{0.92\textwidth}
+  \begin{lstlisting}[
+    caption=Részlet a job-starter függvény JavaScript-kódjából.,
+    label=lst:jobStarterJs,
+    style=js,
+    basicstyle=\fontsize{10}{12}\ttfamily
+  ]
+const assembleJobCommand = (config) => ({
+  Queue: config.jobQueueArn,
+  UserMetadata: {
+    id: `${config.id}`,
+    uploadedFilename: `${config.uploadedFilename}`,
+  },
+  Role: config.iamRoleArn,
+  StatusUpdateInterval: "SECONDS_20",
+  Settings: {
+    OutputGroups: [{
+        Outputs: [
+          { ... }, // 1080p settings
+          { ... }, // 720p settings
+          { ... }, // 480p settings
+          { ... }, // 360p settings
+        ],
+        OutputGroupSettings: {
+          Type: "HLS_GROUP_SETTINGS",
+          HlsGroupSettings: {
+            SegmentLength: config.segmentLength, 
+            Destination: `${config.dest}`, ...
+          },
+        }, ...
+    }],
+    Inputs: [{ FileInput: `${config.origin}`, ... }],
+  },
+});
+
+export const handler = async (event, context) => {
+  const callerInput = event.Records[0].s3;
+  const config = {
+    jobQueueArn: process.env.JOB_QUEUE_ARN,
+    iamRoleArn: process.env.IAM_ROLE_ARN,
+    origin: `${process.env.INPUT_BUCKET_URI}/${callerInput.object.key}`,
+    dest: `${process.env.OUTPUT_BUCKET_URI}/${callerInput.object.key}`,
+    id: callerInput.object.key.split("/")[0],
+    uploadedFilename: callerInput.object.key.split("/")[1],
+    segmentLength: process.env.SEGMENT_LENGTH ?? 6,
+  };
+  const data = await emcClient.send(
+    new CreateJobCommand(assembleJobCommand(config))
+  );
+};
+\end{lstlisting}
+\end{minipage}
+
+A \refstruc{fig:processing} bemutatja, miképp kerül visszajelzésre a felületen az, hogy hol áll a feldolgozottsága egy feltöltött videónak. 
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=150mm, keepaspectratio]{figures/processing.png}
+  \caption{Képernyőkép egy videóprojekt szerkesztői nézetében.}
+  \label{fig:processing}
+\end{figure}
+
+A képernyőképen jelzett ``BSS Videó'' nevű projektbe egy 91 MB-os 1 perc 43 másodperc hosszú videófájl került feltöltésre. A feldolgozást megvizsgáltam a MediaConvert konzoljáról, a job 42 másodpercig tartott. A feltöltött videó paraméterei ezek voltak:
+
+\begin{itemize}
+  \setlength{\itemsep}{1pt}
+  \setlength{\parskip}{0pt}
+  \setlength{\parsep}{0pt}
+  \item \textbf{Mozgóképanyag}: H.264 (AVC) kódolású, 1920x1080p (FHD) felbontás, 7 Mbps átlagos bitráta
+  \item \textbf{Hanganyag}: AAC kódolás, 256 kbps bitráta, 2 csatorna, 48 kHz mintavételezés
+\end{itemize}
+
+A \refstruc{fig:slow4g} mutatja be, ha átnavigálunk a weboldalon a streamelhető videó oldalára, akkor a böngészőben milyen packetek kerültek letöltésre a videófolyamokból. A böngészőben beállítottam sávszélkorlátozást (\emph{Slow 4G}), és azt tapasztaltam, hogy a böngésző elkezdi a 480p-s folyamot letölteni, majd az első packet után 360p-sre vált. A videót az első packet megérkezése után rögtön elindítottam, a 360p-s videófolyam bufferelés nélkül tudott lejátszódni.
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=150mm, keepaspectratio]{figures/processing.png}
+  \caption{Képernyőkép a böngészőben a packetek érkezéséről (Slow 4G).}
+  \label{fig:slow4g}
+\end{figure}
+
+Kipróbáltam 3G-s beállítást is a Chrome böngészőben, azon a sávszélen már erősen hosszú bufferelésre volt szükség még a legalacsonyabb 360p-s felbontásnál is. Vártam másfél percet, hogy betöltsön néhány packetet előre a böngésző, utána már simább volt az élmény. Ez jelentős élményromlást tud jelenteni, ha egy körülbelül 2 perces videó lejátszásához is muszáj megállnom és bevárni pár packetet. Igény merülhet fel újabb és spórolósabb kimenetek bevezetésére a konvertálás folyamatába.
+A 360p-s packetek átlagban 1,2 MB-osak lettek, a CDN a legtöbbet átlagban 800 kB-osra tudta letömöríteni még. Az 1080p-s packetek átlagban 10 MB-osak lettek, a 720p-sek 6 MB-osak, a 480p-sek 2,4 MB-osak. Ezek esetében is a CDN 30-40\% körüli tömörítést tudott elérni.
+
+\subsection{A MediaConvert-job státuszváltozásának kezelése}
+
+A \ref{lst:emcEventRule}. kódrészlet mutatja be a MediaConvert-job eseményeire való feliratkozást, amelyet egy Lambda-függvény fog kezelni, amely a \verb|job-finalizer| modulban található. Ez a Lambda-függvény roppant egyszerű kóddal rendelkezik, csupán behív az eseményből kapott paraméterekkel (job ID, job feldolgozottsági százaléka) az ALB-n keresztül a Node.js-alkalmazásba a \verb|/api/videos/:id/progress| végponton, a webszerver pedig frissíti az adatbázisban az állapotát a videónak.
+
+\begin{minipage}{0.92\textwidth}
+  \begin{lstlisting}[
+    caption=A streamzen-mediaconvert-event-rule-dev Terraform-kódja.,
+    label=lst:emcEventRule,
+    style=tf,
+    basicstyle=\fontsize{10}{12}\ttfamily
+  ]
+resource "aws_cloudwatch_event_rule" "this" {
+  name        = "streamzen-mediaconvert-event-rule-${var.environment}"
+  description = "Capture MediaConvert job state changes"
+  event_pattern = jsonencode({
+    source      = ["aws.mediaconvert"],
+    detail-type = ["MediaConvert Job State Change"]
+    detail      = {
+      status = ["COMPLETE", "ERROR", "STATUS_UPDATE"]
+      userMetadata = {
+        application = ["streamzen-${var.environment}"]
+      }
+    }
+  })
+}
+resource "aws_cloudwatch_event_target" "this" {
+  rule      = aws_cloudwatch_event_rule.this.name
+  target_id = "streamzen-mediaconvert-event-target-${var.environment}"
+  arn       = module.job_finalizer.arn
+}
+\end{lstlisting}
+\end{minipage}
 
 \section{A MediaLive és MediaPackage összekötése}
 
-TODO: Az Elemental stack részeinek felkonfigurálása, a MediaLive channel és a MediaPackage channel felépítése, a MediaPackage endpoint konfigurálása. Miként kerül kiszolgálásra, melyiket mire használom. 
+TODO: Az Elemental stack részeinek felkonfigurálása, a MediaLive channel és a MediaPackage channel felépítése, a MediaPackage endpoint konfigurálása. Miként kerül kiszolgálásra, melyiket mire használom.
 
 TODO: OBS bekötésének módja. Példa az OBS futásról, képernyőképek. Tutorial innen volt: https://d2908q01vomqb2.cloudfront.net/fb644351560d8296fe6da332236b1f8d61b2828a/2020/04/14/Connecting-OBS-Studio-to-AWS-Media-Services-in-the-Cloud-v2.pdf
 
