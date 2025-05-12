@@ -32,19 +32,19 @@ A szabványok konkrét megvalósításával (kodekek) nem foglalkozunk részlete
 
 Hanganyag kódolására is több szabványt tudunk megvizsgálni. Ilyen az MPEG Audio Layer III -- rövid nevén: MP3 -- 1991-ből, ezt 1997-ben az Advanced Audio Coding (AAC) szabvány váltotta le. Ezen szabványok az MPEG által kerültek kifejlesztésre, valamint mindkettő veszteséges tömörítést alkalmaz, azaz a kódoláson és dekódoláson átesett hanganyag minősége nem lesz azonos az eredeti hanganyaggal.
 
-Főleg a mozivilágban használt kódolás a Dolby AC-3 -- ismertebb nevén: Dolby Digital. Azonos bitrátánál is az előbbieknél jobb minőséget ígér. 2017-ben már lejárt a szabadalmi védelme, így azóta szabadon felhasználható. Egy másik, születése (2012) óta szabad felhasználású kódolás az Opus, amelyet a Skype és a Discord is használ VoIP alapú kommunikációra, és az összes eddig említett kódolásnál jobb minőséget produkál.
+Főleg a mozivilágban használt kódolás a Dolby AC-3 -- ismertebb nevén: Dolby Digital. Azonos bitrátánál is az előbbieknél jobb minőséget ígér. 2017-ben már lejárt a szabadalmi védelme, így azóta szabadon felhasználható. Egy másik, születése (2012) óta szabad felhasználású kódolás az Opus, amelyet a Skype és a Discord is használ VoIP-alapú kommunikációra, és az összes eddig említett kódolásnál jobb minőséget produkál.
 
 Természetesen találkozhattunk tömörítetlen (pl.: WAV), illetve veszteségmentes kódolásokkal is (pl.: FLAC) is, azonban a streaming világában ezek nem használatosak, mivel a nagyobb fájlméretük meghaladná a sávszélesség és a tárhely korlátait. Az AC-3 és AAC szabványok közül szokás választani a videó streaming során, széles körben kompatibilisek mindenféle lejátszó eszközzel, míg az Opus még nem eléggé támogatott.
 
 \section{Videó streaming kiszolgálása}\label{streamref}
 
-A médiastreamelés egy olyan folyamat, amely során az médiaadatokat -- mi esetünkben videóadatot -- egy adott hálózati protokoll felett, egy adott konténerformátumban, adott kódolásssal továbbítjuk a végfelhasználók számára. Elsősorban az azonnali elérhetőségre összpontosít, azaz a lejátszásnak a lehető legkisebb késleltetéssel kell megtörténnie, kevésbé fontos a streaming során a minőség megtartása, mint ahogy az fontos lenne teljes médiumok egyben való letöltésekor.
+A média streaming egy olyan folyamat, amely során az médiaadatokat -- mi esetünkben videóadatot -- egy adott hálózati protokoll felett, egy adott konténerformátumban, adott kódolásssal továbbítjuk a végfelhasználók számára. Elsősorban az azonnali elérhetőségre összpontosít, azaz a lejátszásnak a lehető legkisebb késleltetéssel kell megtörténnie, kevésbé fontos a streaming során a minőség megtartása, mint ahogy az fontos lenne teljes médiumok egyben való letöltésekor.
 
 A streaming során az adatfolyamba helyezés előtt a videóadatokat újrakódoljuk, majd kisebb adatcsomagokra -- úgynevezett ``packetekre'' -- bontjuk, és ezeket a csomagokat a hálózaton keresztül továbbítjuk a végfelhasználók felé. Az adatcsomagok önmagukban is értelmezhetőek, és a végfelhasználók lejátszó alkalmazásai képesek az adatcsomagokat a megfelelő sorrendben és időzítéssel lejátszani. A streaming könnyen reagál a lejátszás során ugrálásokra, előre- és visszatekerésre, mivel a videót nem kell teljes egészében letölteni a végfelhasználói eszközre, hanem a feldarabolt videócsomagot a lejátszás során továbbítjuk abban a pillanatban, amikor arra szükség lesz.
 
-\subsection{Az élő közvetítés és video-on-demand különbségei}
+\subsection{Az élő közvetítés és Video-on-Demand különbségei}
 
-Annak megfelelően, hogy az adat egésze mikor áll rendelkezésünkre, kettő fő streaming típust különböztetünk meg: az élő közvetítést (live streaming) és a video-on-demand (VOD) streaminget. A VOD esetében a videóadatokat előre rögzített formában tároljuk, és a végfelhasználók a videóadatokat a saját időbeosztásuknak megfelelően nézhetik meg. Az élő közvetítés esetében a videóadatokat valós időben továbbítjuk a végfelhasználók felé, és a végfelhasználók a videóadatokat a közvetítés során nézhetik meg.
+Annak megfelelően, hogy az adat egésze mikor áll rendelkezésünkre, kettő fő streaming típust különböztetünk meg: az élő közvetítést (live streaming) és a Video-on-Demand (VOD) streaminget. A VOD esetében a videóadatokat előre rögzített formában tároljuk, és a végfelhasználók a videóadatokat a saját időbeosztásuknak megfelelően nézhetik meg. Az élő közvetítés esetében a videóadatokat valós időben továbbítjuk a végfelhasználók felé, és a végfelhasználók a videóadatokat a közvetítés során nézhetik meg.
 
 Különbözik mindkettőnél, hogy milyen fizikai infrastrukturális tervezést kell végrehajtani a legjobb kiszolgálás érdekében. Élő adásoknál a késleltetés a középponti kihívás, mivel a videóadatokat a lehető leggyorsabban kell továbbítani a végfelhasználók felé, hogy a közvetítés valóban élőnek tűnjön, ehhez magas számítási teljesítmény szükséges. A VOD esetében a hálózati sávszélességből adódó problémák leküzdése a központi kihívás, mivel a videót a felhasználók sokkal nagyobb közönsége kívánja elérni, azt kiváló minőségben szeretné megtekinteni, ennek ellenére a globális sávszélesség korlátozott. Itt a caching és a tartalomterjesztés optimalizálása a kulcs, ekkor jönnek képbe a Content Delivery Networkök (CDN-ek), azaz a tartalomterjesztő hálózatok. \cite{cdn}
 
@@ -52,14 +52,14 @@ Különbözik mindkettőnél, hogy milyen fizikai infrastrukturális tervezést 
 
 Lentebb két ábrát (\refstruc{fig:vodsetup} és \refstruc{fig:livesetup}) láthatunk, amelyek absztrakt példákat mutatnak egy VOD-kiszolgálás és egy élő közvetítés résztvevő médiaeszközeire. A rajta feltüntetett protokollok és fájlnevek a későbbi alfejezetekben olvasása során érthetőek lesznek.
 
-\begin{figure}[ht]
+\begin{figure}[]
 	\centering
 	\includegraphics[width=120mm, keepaspectratio]{figures/dipterv_vodsetup.png}
 	\caption{Példa egy VOD-kiszolgálás résztvevő eszközeire.}
 	\label{fig:vodsetup}
 \end{figure}
 
-\begin{figure}[ht]
+\begin{figure}[]
 	\centering
 	\includegraphics[width=100mm, keepaspectratio]{figures/dipterv_livesetup.png}
 	\caption{Példa egy élő közvetítés résztvevő eszközeire.}
@@ -72,7 +72,7 @@ A streamelést erősen befolyásoló tényező a hálózati feltételek változ�
 
 Az ABR során a forrásvideót több különböző bitrátával dolgozó kodekekkel és különböző felbontással kódoljuk a médiaszerveren, majd lejátszáskor a lejátszó alkalmazás a hálózati feltételek változására reagálva, valamint a fogadó fél számítási kapacitásától függően valós időben választja ki a megfelelő vi\-de\-ó\-strea\-met ezek közül, onnan válogatja a packeteket (\refstruc{fig:ABR}).
 
-\begin{figure}[ht]
+\begin{figure}[]
 	\centering
 	\includegraphics[width=140mm, keepaspectratio]{figures/dipterv_abr.png}
 	\caption{Az Adaptive Bitrate Streaming működése.}
@@ -83,7 +83,7 @@ Tiszta, hogy az ABR-t megvalósító rendszer előnyös mind a VOD, mind az él�
 
 \section{Videó streaming hálózati protokolljai}
 
-Videó streamelésére -- másképp fogalmazva: valamely korábban ismertetett formátumban tárolt videó adatfolyamba való illesztésére különböző hálózati protokollok palettája áll rendelkezésünkre.
+Videó streamelésére -- másképp fogalmazva: valamely korábban ismertetett formátumban tárolt videófájl adatfolyamba való illesztésére -- különböző hálózati protokollok palettája áll rendelkezésünkre.
 
 Néhány ismertebb streaming használatára kitalált protokoll létrejöttük időrendjében \cite{StreamingHistory}:
 
@@ -103,7 +103,7 @@ Jelen alfejezet ezen alkalmazásrétegben alkalmazott protokollok (Layer 7) köz
 
 \subsection{Real-Time Messaging Protocol}
 
-A Real-Time Messaging Protocolt (RTMP) nevű protokollt még a Macromedia nevű cég fejlesztette ki, amely vállalatot később az Adobe felvásárolta. Az RTMP egy teljes szervertől kliensig tartó protokoll, amely a Flash Player és a Flash Media Server közötti kommunikációra lett kifejlesztve eredendően. Közvetlen dolgozik a TCP felett, ennek nincs köze a HTTP-hez. \cite{StreamingHistory} Az RTMP-t még támogatja sok-sok platform, mert egész alacsony késleltetést lehet vele elérni, egészen alacsony ``költségű'', a Twitch és a YouTube is támogatja, hogy RTMP pull üzemmódjában tudjunk ezeken a platformokon élőadást fogadni, tehát szerver oldalon még használt, persze a Flash Player támogatásának 2020-as kivezetése miatt a protokoll használata kliens oldalon pedig visszaszorult.
+A Real-Time Messaging Protocolt (RTMP) nevű protokollt még a Macromedia nevű cég fejlesztette ki, amely vállalatot később az Adobe felvásárolta. Az RTMP egy teljes szervertől kliensig tartó protokoll, amely a Flash Player és a Flash Media Server közötti kommunikációra lett kifejlesztve eredendően. Közvetlen dolgozik a TCP felett, ennek nincs köze a HTTP-hez. \cite{StreamingHistory} Az RTMP-t még támogatja sok-sok platform, mert egész alacsony késleltetést lehet vele elérni, egészen alacsony ``költségű'', a Twitch és a YouTube is támogatja, hogy RTMP pull üzemmódjában tudjunk ezeken a platformokon élő adást fogadni, tehát szerveroldalon még használt, persze a Flash Player támogatásának 2020-as kivezetése miatt a protokoll használata kliensoldalon pedig visszaszorult.
 
 \subsection{HTTP Live Streaming}
 
@@ -141,6 +141,6 @@ A HLS-hez hasonló elvekkel dolgozik a DASH is, illetve ez is egy ABR technológ
 
 \subsection{WebRTC}
 
-A WebRTC (Web Real Time Communications) egy nyílt forráskódú projekt részeként alapult -- támogatják kódbázisának fenntartását mind a Google, a Mozilla és az Opera csapatai is --, egy protokoll böngésző alapú valós idejű kommunikáció kialakítására. Ezt használja a Discord, a Google Chat és egyéb webes videóchat-alkalmazások. \cite{StreamingHistory}
+A WebRTC (Web Real Time Communications) egy nyílt forráskódú projekt részeként alapult -- támogatják kódbázisának fenntartását mind a Google, a Mozilla és az Opera csapatai is --, egy protokoll böngészőalapú valós idejű kommunikáció kialakítására. Ezt használja a Discord, a Google Chat és egyéb webes videóchat-alkalmazások. \cite{StreamingHistory}
 
-A források és a streamet figyelők számának kardinalitása szempontjából ez eltér az előzőekben ismertetettektől -- amelyek egy forrás és több befogadóra optimalizált --, ez viszont peer-to-peer alapú, tehát oda-vissza jellegű streamlést kell biztosítson, emiatt a WebRTC a legjobb választás, amennyiben a felhasználási célja az, hogy a felhasználók közvetlenül egymással kommunikálhassanak, és nem szükséges közbeiktatni egy központi médiaszervert. Ezenkívül a WebRTC-t egyre szélesebb körben próbálják alkalmazni a videó streaming területén is one-to-many közvetítésre is. Szabad felhasználású kodekeket alkalmaz videó- és hangkódolás terén (pl.: Opus, VP9). \cite{WebRTC}
+A források és a streamet figyelők számának kardinalitása szempontjából ez eltér az előzőekben ismertetettektől -- amelyek egy forrás és több befogadóra optimalizált --, ez viszont peer-to-peer (P2P) alapú, tehát oda-vissza jellegű streamlést kell biztosítson, emiatt a WebRTC a legjobb választás, amennyiben a felhasználási célja az, hogy a felhasználók közvetlenül egymással kommunikálhassanak, és nem szükséges közbeiktatni egy központi médiaszervert. Ezenkívül a WebRTC-t egyre szélesebb körben próbálják alkalmazni a videó streaming területén is one-to-many közvetítésre is. Szabad felhasználású kodekeket alkalmaz videó- és hangkódolás terén (pl.: Opus, VP9). \cite{WebRTC}

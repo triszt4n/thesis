@@ -2,11 +2,11 @@
 
 A megjelenítési réteg alatt található szerveroldali folyamatok implementációja során a kiszolgáló infrastruktúra kialakítására, a Node.js-alkalmazás fejlesztésére, a konténerizált környezet kialakítására, valamint a videófeldolgozásra fókuszálunk ebben a fejezetben.
 
-\section{A virtuális privát felhő komponensei}
+\section{A virtuális privát felhő komponensei}\label{sec:vpc}
 
 A szerveroldal erőforrásait igyekeztem mindet egy közös VPC-be szervezni, amely lehetővé teszi, hogy a komponensek egymást lássák, és biztonságosan kommunikáljanak egymással alhálózataik között. A VPC-n belül az összetartozó elemekhez két-két alhálózatot hoztam létre. A legtöbb AWS-szolgáltatás a magas rendelkezésreállás érdekében legalább kettő konkrét adatközpontba kell kitelepítése kerüljön, azaz az AWS saját terminológiáját használva: két \emph{Availibility Zone}-ba (AZ) kell elhelyezésre kerüljenek a konkrét erőforrások. Ennek megfelelően az eu-central-1 régió alatti \emph{eu-central-1a} és \emph{eu-central-1b} AZ-ba szerveztem az egyes alhálózataim. Az alhálózatok közötti forgalom irányítását útválasztó táblák (angolul \emph{route table}) segítségével végeztem, amelyek biztosítják, hogy a komponensek közötti kommunikáció megfelelően működjön. Az útválasztó táblák konkrét bejegyzéseit, valamint a felhasznált IP-tartományokat is tartalmazza a \refstruc{fig:vpc}.
 
-\begin{figure}[ht]
+\begin{figure}[]
   \centering
   \includegraphics[width=150mm, keepaspectratio]{figures/dipterv_vpc.png}
   \caption{Részletes architektúraábra a VPC-ről.}
@@ -25,7 +25,7 @@ A szervernek fontos a kapcsolódása az adatbázisra, amely egy külön privát 
 
 Az ECS-klaszterben működő szervernek több külhálózaton működő szolgáltatás felé kell tudnia kommunikálni. Ezek a VPC-n kívüli komponensek a \refstruc{fig:nonvpc} segítségével kerülnek vizuálisan ismertetésre.
 
-\begin{figure}[ht]
+\begin{figure}[]
   \centering
   \includegraphics[width=150mm, keepaspectratio]{figures/dipterv_nonvpc.png}
   \caption{Részletes architektúraábra a VPC-ből kifelé és befelé kommunikáló komponensekkel.}
@@ -36,14 +36,7 @@ A \refstruc{fig:nonvpc} ábra és a \refstruc{fig:vpc} együttesen mutatja be az
 
 Léteznek különféle hálózati erőforrástípusok, hogy privát alhálózatban helyezzünk el egy ECS-ben futó szervert, illetve akár Lambda-függvényeket, amelyek kommunikálnak VPC-n kívüli eszközökkel. Ilyen erőforrástípus a \emph{NAT Gateway}, amely Network Address Translation (NAT) szolgáltatás, és amennyiben adunk neki egy állandó publikus IP-címet (Amazon Elastic IP szolgáltatással), úgy képes azon keresztül az internet felé forgalmazást biztosítani a VPC erőforrásai számára, kinti erőforrásoknak viszont befelé már nem. Ez megoldotta volna az AuthSCH felé kommunikálást. Egy másik lehetőség lett volna a \emph{VPC Endpointok} alkalmazása, amelyek interfészt szolgáltatnak bizonyos AWS-en belüli szolgáltatások felé anélkül, hogy az elhagyná az adatközpontot. A bizonyos szolgáltatások közé tartozik a CloudWatch Logs, az ECR, az ECS-hez tartozó egyéb szolgáltatások, az EventBridge és az S3 is. Ezt a biztonsági kockázatot a kísérletem szempontjából nem kívántam megelőzni, az igazán szükséges védelmi réteget a Security Group is megvalósítja, a privát alhálózat csupán plusz egy réteget jelent nagy kockázatú, vegyes forgalmat kezelő enterprise rendszerek kivitelezése során, az én esetemben a költségek és a bonyolultság erősen megnőtt volna jelölt erőforrások bekötésével.
 
-A hálózat építése tégláról téglára került kivitelezésre, a fejlesztési/tervezési fázisban ezért érdemesnek tartottam a tesztelés során \emph{``jumpbox''} jelleggel bevezetni egy EC2-példányt, amely a publikus alhálózatban helyezkedik el. Viszont az elérése nem kívántam jelszavakat, SSH-kulcsokat kezelni, ezért az AWS Systems Manager (SSM) Session Manager szolgáltatását használtam, amely lehetővé tette, hogy a webes konzolon keresztül SSH-kapcsolatot létesítsek az EC2-példánnyal anélkül, hogy közvetlenül elérné azt. Az EC2-es példány létrehozása után egy ágenset kellett volna telepítsek, amely erre felkészíti magát a virtuális gépet, azonbna ezt a telepítési folyamatot is automatizáltam a Systems Manager Host Management szolgáltatásával, a \ref{fig:hostmgmt} ábra mutatja be a Host Management gyorstelepítési oldalát, amely lehetővé teszi az EC2-példányok központi kezelését. A jumpbox segítségével tudtam pingelgetni a hálózati eszközök interfészeit, illetve a Security Groupok beállításait is tesztelni, és akár az RDS-adatbázison is futtatni egyszerű lekéréseket, sémamigrációkat.
-
-\begin{figure}[ht]
-  \centering
-  \includegraphics[width=152mm, keepaspectratio]{figures/hostmgmt.png}
-  \caption{A Host Management gyorstelepítési oldala.}
-  \label{fig:hostmgmt}
-\end{figure}
+A hálózat építése tégláról téglára került kivitelezésre, a fejlesztési/tervezési fázisban ezért érdemesnek tartottam a tesztelés során \emph{``jumpbox''} jelleggel bevezetni egy EC2-példányt, amely a publikus alhálózatban helyezkedik el. Viszont az elérése nem kívántam jelszavakat, SSH-kulcsokat kezelni, ezért az AWS Systems Manager (SSM) Session Manager szolgáltatását használtam, amely lehetővé tette, hogy a webes konzolon keresztül SSH-kapcsolatot létesítsek az EC2-példánnyal anélkül, hogy közvetlenül elérné azt. Az EC2-es példány létrehozása után egy ágenset kellett volna telepítsek, amely erre felkészíti magát a virtuális gépet, azonban ezt a telepítési folyamatot is automatizáltam a Systems Manager Host Management szolgáltatásával, amely lehetővé teszi az EC2-példányok központi kezelését. A jumpbox segítségével tudtam pingelgetni a hálózati eszközök interfészeit, illetve a Security Groupok beállításait is tesztelni, és akár az RDS-adatbázison is futtatni egyszerű lekéréseket, sémamigrációkat.
 
 \section{A Node.js-alkalmazás fejlesztése}
 
@@ -62,18 +55,18 @@ Az elkészült webszerver-alkalmazás egy REST API-t valósít meg. A benne kial
 
 A \refstruc{fig:prismaliser} mutatja be a Prisma-ban írt Prisma-sémát. A séma tartalmaz jövőbeli felhasználásra szánt elemeket, az egyszerűségre törekszik a séma, csupán a lényeges adatokat tároljuk le.
 
-\begin{figure}[ht!]
+A \verb|User| entitás reprezentálja a felhasználókat, akik megfelelő \verb|role| attribútumérték esetén feltölteni tudnak a weboldalra. A \verb|role| attribútum típusát enum típusra állítottam, amelynek értékei a \verb|USER| és \verb|ADMIN|. A \verb|User|-nek számított attribútuma a \verb|vods| és a \verb|crewMemberships|.
+
+A \verb|Vod| entitás a feltöltött videók metaadatait reprezentálja. A \verb|Vod| entitásnak meg kell adni létrehozáskor egy \verb|User| kapcsolatot, amely a feltöltő felhasználót reprezentálja. Ezenkívül fontos attribútuma a \verb|state|, amely a videó állapotát reprezentálja. A \verb|state| attribútum enum típusú, lehet értéke \verb|UNPROCESSED| (ez a létrehozáskori érték), lehet \verb|UPLOADED| (amikor feltöltésre került), \verb|PROCESSING| (amikor már a MediaConvert dolgozik az átalakításán), \verb|PROCESSED| (amikor véget ért a MediaConvert-job), vagy pedig \verb|FAILED| (amennyiben hiba történt valamelyik fázisban). Segít a videó állapotának nyomon követésében a \verb|statePercent| attribútum is, amely a MediaConvert által visszaadott százalékos értéket tárolja le.
+
+A \verb|CrewMembership| entitáshoz tartozó tábla a \verb|Vod| és a \verb|User| entitások közötti illesztő tábla (angolul \emph{join table}), saját attribútumokat tud ehhez a kapcsolathoz hozzáadni, kardinalitás szempontjából egy \verb|CrewMembershipnek| csak egy \verb|User|-t és csak egy \verb|Vod|-ot kell kötnie. Egy \verb|Vod|-nak persze több \verb|CrewMembership|-je is lehet, ugyanígy \verb|User|-nek is. Ez az entitás és a \verb|ViewCounter| -- amely a megtekintések számlálóját lett volna hivatott reprezentálni -- aktívan nem került felhasználásra a fejlesztés során, tervezésben maradt csupán, nem volt esszenciális a végső cél megvalósításához.
+
+\begin{figure}[h]
   \centering
   \includegraphics[width=155mm, keepaspectratio]{figures/prismaliser.png}
   \caption{A Prisma-séma vizuális reprezentációja.}
   \label{fig:prismaliser}
 \end{figure}
-
-A User entitás reprezentálja a felhasználókat, akik megfelelő role attribútumérték esetén feltölteni tudnak a weboldalra. A role attribútum típusát enum típusra állítottam, amelynek értékei a \verb|USER| és \verb|ADMIN|. A Usernek számított attribútuma a vods és a crewMemberships.
-
-A Vod entitás a feltöltött videók metaadataid reprezentálja. A Vod entitásnak meg kell adni létrehozáskor egy User kapcsolatot, amely a feltöltő felhasználót reprezentálja. Ezenkívül fontos attribútuma a state, amely a videó állapotát reprezentálja. A state attribútum enum típusú, lehet értéke \verb|UNPROCESSED| (ez a létrehozáskori érték), lehet \verb|UPLOADED| (amikor feltöltésre került), \verb|PROCESSING| (amikor már a MediaConvert dolgozik az átalakításán), \verb|PROCESSED| (amikor véget ért a MediaConvert-job), vagy pedig \verb|FAILED| (amennyiben hiba történt valamelyik fázisban). Segít a videó állapotának nyomon követésében a statePercent attribútum is, amely a MediaConvert által visszaadott százalékos értéket tárolja le.
-
-A CrewMembership entitáshoz tartozó tábla a Vod és a User entitások közötti illesztő tábla (angolul \emph{join table}), saját attribútumokat tud ehhez a kapcsolathoz hozzáadni, kardinalitás szempontjából egy CrewMembershipnek csak egy Usert és csak egy Vodot kell kötnie. Egy Vodnak persze több CrewMembershipje is lehet, ugyanígy Usernek is. Ez az entitás és a ViewCounter -- amely a megtekintések számlálóját lett volna hivatott reprezentálni -- aktívan nem került felhasználásra a fejlesztés során, tervezésben maradt csupán, nem volt esszenciális a végső cél megvalósításához.
 
 \subsection{Környezeti változók}\label{sec:envvars}
 
@@ -138,6 +131,8 @@ A feltöltéshez szükséges fájlok a kliensoldalon kerülnek kiválasztásra, 
 
 A VideoService-ben működő \verb|upload| függvény felé lesz a kapott fájl bufferje továbbítva, végül a service-függvény eredményéből született fájlnévvel kerül az adatbázisba is lementésre az entitásként a videó is a \verb|afterUpload| függvény által.
 
+A VideoService az AWS SDK S3 API-ját használja a fájlok vödörbe való feltöltésére. Ehhez létrehoztam tagváltozóként a \verb|s3Client|-et. A \verb|upload| függvény először átalakítja a fájlnevet, megtartja a kiterjesztést, viszont a dátumot szerkeszti bele a konkrét névbe. Majdpedig készít egy \verb|PutObjectCommand| típusú objektumot, amellyel a megfelelő helyre és névvel kerül feltöltésre az \verb|s3Client|-en keresztül a fájl.
+
 \begin{minipage}{0.92\textwidth}
   \begin{lstlisting}[
     caption=Videófeltöltés függvénye a VideoService osztályban.,
@@ -165,22 +160,20 @@ async upload(id: string, fileName: string, file: Buffer) {
 \end{lstlisting}
 \end{minipage}
 
-A VideoService az AWS SDK S3 API-ját használja a fájlok vödörbe való feltöltésére. Ehhez létrehoztam tagváltozóként a \verb|s3Client|-et. A \verb|upload| függvény először átalakítja a fájlnevet, megtartja a kiterjesztést, viszont a dátumot szerkeszti bele a konkrét névbe. Majdpedig készít egy \verb|PutObjectCommand| típusú objektumot, amellyel a megfelelő helyre és névvel kerül feltöltésre az \verb|s3Client|-en keresztül a fájl.
-
 \section{A konténerizált környezet}
 
 A konténerizált webalkalmazás kialakítására a Docker ökoszisztémájának eszközeit vettem alkalmazásba. A fejlesztés során a Docker Desktop alkalmazást használtam, amely lehetővé tette a konténerek helyi futtatását, a Docker Compose segítségével pedig a Node.js-alkalmazás mellé felvettem egy PostgreSQL-adatbázis konténerét is, azok között a Compose-kóddal a konténerek közötti kommunikációt is könnyen meg tudtam valósítani.
 
-Telepítésre a korábban is ismertetett módon az ECS szolgáltatásába került egy klaszterba a Node.js-alkalmazás. A felkonfiguráláshoz szükséges Terraform-kódot a \ref{lst:ecsCluster}. kódrészlet mutatja be. A klaszterba csupán egy szolgáltatás került be, a mi REST API-nkat kiszolgáló app. A szolgáltatás felépítő elemeit, azok működését a \refstruc{fig:ecscluster} is bemutatja.
-
-\begin{figure}[ht!]
+\begin{figure}[h]
   \centering
   \includegraphics[width=100mm, keepaspectratio]{figures/dipterv_ecs.png}
   \caption{Az ECS-klaszter elemei.}
   \label{fig:ecscluster}
 \end{figure}
 
-Egy taszkdefiníciója van a teljes szolgáltatásnak, emiatt egyfajta taszk fog futni is, az fogja kitelepíteni a konkrét konténerpéldányokat. A taszk a konténerek képét természetesen a korábban ismertetett ECR-repository-ból tölti le, majd buildeli le. A konténerek erőforrásmenedzsmentjét a Fargate szolgáltatásra hagytam (lásd: \verb|launch type|). Az ECS-szolgáltatáshoz definiálja kapcsolatát az ALB-példánnyal (lásd: \verb|load balancer| blokk a Terraform-kódban), az ALB pedig képes automatikusan felderíteni a konkrét konténereket, azokra pedig ráirányítani a forgalmat.
+Az élesítése a Node.js-alkalmazásnak a korábban is ismertetett módon, egy ECS-klaszterba telepítve került kivitelezésre. A felkonfiguráláshoz szükséges Terraform-kódot a \ref{lst:ecsCluster}. kódrészlet mutatja be. A klaszterba csupán egy szolgáltatás került be, a mi REST API-nkat kiszolgáló app. A szolgáltatás felépítő elemeit, azok működését a \refstruc{fig:ecscluster} is bemutatja.
+
+Egy taszkdefiníciója van a teljes szolgáltatásnak, emiatt egyfajta taszk fog futni is, az fogja kitelepíteni a konkrét konténerpéldányokat. A taszk a konténerek képét természetesen a korábban ismertetett ECR-tárolóból tölti le, majd buildeli le. A konténerek erőforrásmenedzsmentjét a Fargate szolgáltatásra hagytam (lásd: \verb|launch type|). Az ECS-szolgáltatáshoz definiálja kapcsolatát az ALB-példánnyal (lásd: \verb|load balancer| blokk a Terraform-kódban), az ALB pedig képes automatikusan felderíteni a konkrét konténereket, azokra pedig ráirányítani a forgalmat.
 
 \begin{minipage}{0.92\textwidth}
   \begin{lstlisting}[
@@ -337,7 +330,7 @@ deploy:
 
 \section{Elemental MediaConvert felhasználása}
 
-A videófeltöltés és live-indítás alfolyamatai a rendszernek implementációi eseményvezérelt architektúrában kerültek kivitelezésre (\emph{event-drive architecture}, EDA). Ennek az architektúrának egy eleme a Node.js-szerver is, amely a korábbi alfejezetekben került bemutatásra. A feltöltés megtörténik a Node.js REST API-ján keresztül, majd pedig beindul egy másodlagos folyamat, amely a feltöltött fájlok átkonvertálásáért felelős. A feltöltés az S3-vödrön egy \verb|"s3:ObjectCreated"| eseményt generál, amelyet egy Lambda-függvény kap el, a \verb|streamzen-job-starter-dev| (\refstruc{fig:nonvpc}).
+A videófeltöltés és live indítás alfolyamatai a rendszernek implementációi eseményvezérelt architektúrában kerültek kivitelezésre (\emph{event-drive architecture}, EDA\cite{eda}). Ennek az architektúrának egy eleme a Node.js-szerver is, amely a korábbi alfejezetekben került bemutatásra. A feltöltés megtörténik a Node.js REST API-ján keresztül, majd pedig beindul egy másodlagos folyamat, amely a feltöltött fájlok átkonvertálásáért felelős. A feltöltés az S3-vödrön egy \verb|"s3:ObjectCreated"| eseményt generál, amelyet egy Lambda-függvény kap el, a \verb|streamzen-job-starter-dev| (\refstruc{fig:nonvpc}).
 
 A Lambda-függvény kódja összekomponálja az konvertáláshoz szükséges MediaConvert-job definícióját, amely a feltöltött fájlt átkonvertálja HLS-folyamba helyezhetővé, és az elkészült fájlokat egy S3-vödörbe helyezi el (\verb|streamzen-static-assets-dev-bucket|).
 
@@ -404,6 +397,7 @@ const assembleJobCommand = (config) => ({
 
 export const handler = async (event, context) => {
   const callerInput = event.Records[0].s3;
+
   const config = {
     jobQueueArn: process.env.JOB_QUEUE_ARN,
     iamRoleArn: process.env.IAM_ROLE_ARN,
@@ -413,6 +407,7 @@ export const handler = async (event, context) => {
     uploadedFilename: callerInput.object.key.split("/")[1],
     segmentLength: process.env.SEGMENT_LENGTH ?? 6,
   };
+
   const data = await emcClient.send(
     new CreateJobCommand(assembleJobCommand(config))
   );
@@ -420,40 +415,38 @@ export const handler = async (event, context) => {
 \end{lstlisting}
 \end{minipage}
 
-A \refstruc{fig:processing} bemutatja, miképp kerül visszajelzésre a felületen az, hogy hol áll a feldolgozottsága egy feltöltött videónak. 
-
-\begin{figure}[ht]
+\begin{figure}[]
   \centering
   \includegraphics[width=150mm, keepaspectratio]{figures/processing.png}
   \caption{Képernyőkép egy videóprojekt szerkesztői nézetében.}
   \label{fig:processing}
 \end{figure}
 
-A képernyőképen jelzett ``BSS Videó'' nevű projektbe egy 91 MB-os 1 perc 43 másodperc hosszú videófájl került feltöltésre. A feldolgozást megvizsgáltam a MediaConvert konzoljáról, a job 42 másodpercig tartott. A feltöltött videó paraméterei ezek voltak:
+A \refstruc{fig:processing} bemutatja, miképp kerül visszajelzésre a felületen az, hogy hol áll a feldolgozottsága egy feltöltött videónak. A képernyőképen jelzett ``BSS Videó'' nevű projektbe egy 91 MB-os 1 perc 43 másodperc hosszú videófájl került feltöltésre. A feldolgozást megvizsgáltam a MediaConvert konzoljáról, a job 42 másodpercig tartott. A feltöltött videó paraméterei ezek voltak:
 
 \begin{itemize}
   \setlength{\itemsep}{1pt}
   \setlength{\parskip}{0pt}
   \setlength{\parsep}{0pt}
-  \item \textbf{Mozgóképanyag}: H.264 (AVC) kódolású, 1920x1080p (FHD) felbontás, 7 Mbps átlagos bitráta
+  \item \textbf{Mozgóképanyag}: H.264 kódolású, 1920x1080p felbontás, 7 Mbps átlagos bitráta
   \item \textbf{Hanganyag}: AAC kódolás, 256 kbps bitráta, 2 csatorna, 48 kHz mintavételezés
 \end{itemize}
 
-A \refstruc{fig:slow4g} mutatja be, ha átnavigálunk a weboldalon a streamelhető videó oldalára, akkor a böngészőben milyen packetek kerültek letöltésre a videófolyamokból. A böngészőben beállítottam sávszélkorlátozást (\emph{Slow 4G}), és azt tapasztaltam, hogy a böngésző elkezdi a 480p-s folyamot letölteni, majd az első packet után 360p-sre vált. A videót az első packet megérkezése után rögtön elindítottam, a 360p-s videófolyam bufferelés nélkül tudott lejátszódni.
-
-\begin{figure}[ht]
+\begin{figure}[h]
   \centering
-  \includegraphics[width=150mm, keepaspectratio]{figures/processing.png}
+  \includegraphics[width=150mm, keepaspectratio]{figures/browser_slow4g.png}
   \caption{Képernyőkép a böngészőben a packetek érkezéséről (Slow 4G).}
   \label{fig:slow4g}
 \end{figure}
+
+A \refstruc{fig:slow4g} mutatja be, ha átnavigálunk a weboldalon a streamelhető videó oldalára, akkor a böngészőben milyen packetek kerültek letöltésre a videófolyamokból. A böngészőben beállítottam sávszélkorlátozást (\emph{Slow 4G}), és azt tapasztaltam, hogy a böngésző elkezdi a 480p-s folyamot letölteni, majd az első packet után 360p-sre vált. A videót az első packet megérkezése után rögtön elindítottam, a 360p-s videófolyam bufferelés nélkül tudott lejátszódni.
 
 Kipróbáltam 3G-s beállítást is a Chrome böngészőben, azon a sávszélen már erősen hosszú bufferelésre volt szükség még a legalacsonyabb 360p-s felbontásnál is. Vártam másfél percet, hogy betöltsön néhány packetet előre a böngésző, utána már simább volt az élmény. Ez jelentős élményromlást tud jelenteni, ha egy körülbelül 2 perces videó lejátszásához is muszáj megállnom és bevárni pár packetet. Igény merülhet fel újabb és spórolósabb kimenetek bevezetésére a konvertálás folyamatába.
 A 360p-s packetek átlagban 1,2 MB-osak lettek, a CDN a legtöbbet átlagban 800 kB-osra tudta letömöríteni még. Az 1080p-s packetek átlagban 10 MB-osak lettek, a 720p-sek 6 MB-osak, a 480p-sek 2,4 MB-osak. Ezek esetében is a CDN 30-40\% körüli tömörítést tudott elérni.
 
 \subsection{A MediaConvert-job státuszváltozásának kezelése}
 
-A \ref{lst:emcEventRule}. kódrészlet mutatja be a MediaConvert-job eseményeire való feliratkozást, amelyet egy Lambda-függvény fog kezelni, amely a \verb|job-finalizer| modulban található. Ez a Lambda-függvény roppant egyszerű kóddal rendelkezik, csupán behív az eseményből kapott paraméterekkel (job ID, job feldolgozottsági százaléka) az ALB-n keresztül a Node.js-alkalmazásba a \verb|/api/videos/:id/progress| végponton, a webszerver pedig frissíti az adatbázisban az állapotát a videónak.
+A \ref{lst:emcEventRule}. kódrészlet mutatja be a MediaConvert-job eseményeire való feliratkozást. A \verb|job-finalizer| modulbeli Lambda-függvény roppant egyszerű kóddal rendelkezik, csupán behív az eseményből kapott paraméterekkel (job ID és feldolgozottság százaléka) az ALB-n keresztül a Node.js-appba a \verb|/api/videos/:id/progress| végponton, a webszerver pedig frissíti az adatbázisban a videó állapotát.
 
 \begin{minipage}{0.92\textwidth}
   \begin{lstlisting}[
@@ -476,6 +469,7 @@ resource "aws_cloudwatch_event_rule" "this" {
     }
   })
 }
+
 resource "aws_cloudwatch_event_target" "this" {
   rule      = aws_cloudwatch_event_rule.this.name
   target_id = "streamzen-mediaconvert-event-target-${var.environment}"
@@ -486,10 +480,28 @@ resource "aws_cloudwatch_event_target" "this" {
 
 \section{A MediaLive és MediaPackage összekötése}
 
-TODO: Az Elemental stack részeinek felkonfigurálása, a MediaLive channel és a MediaPackage channel felépítése, a MediaPackage endpoint konfigurálása. Miként kerül kiszolgálásra, melyiket mire használom.
+A MediaLive szolgáltatásban fellőttem a tervezett egyetlen csatornát, amelyre egy RTMP push alapú inputot kötöttem be. A létrehozott inputhoz az AWS rendelt IP-t, portot, a kapott URL így ez lett: rtmp://3.73.170.41:1935/streamzen-dev. A csatorna úgy lett felkonfigurálva, hogy maximum 20 Mbps bitráta mellett 1080p-s felbontású videófolyamot tudjon fogadni, a hangot pedig AAC kódolásúként, 256 kbps bitrátával. A MediaLive-csatornából átvezetett folyam két kimenetet képez, egy 8 Mbps célbitrátájú 1080p-s kimenetet ad, illetve egy 3,3 Mbps célbitrátájú 720p-s kimenetet. A MediaPackage szolgáltatásban is egyetlen csatornát hoztam létre, amely a MediaLive-csatorna kimeneteit fogadja be, és az átkonvertálja HLS-formátumú folyamra.
 
-TODO: OBS bekötésének módja. Példa az OBS futásról, képernyőképek. Tutorial innen volt: https://d2908q01vomqb2.cloudfront.net/fb644351560d8296fe6da332236b1f8d61b2828a/2020/04/14/Connecting-OBS-Studio-to-AWS-Media-Services-in-the-Cloud-v2.pdf
+A MediaLive-csatornának még szüksége volt egy IAM-szerepkörre, amelyben megadtam a szerepkörnek minden olyan jogosultságot, amely szükséges a MediaPackage-csatornába való átvezetéshez számára, illetve a CloudWatch-ba való naplózásra és a szükséges hálózati/EC2-hez kapcsolódó jogokat is megkapta (a MediaLive hátterében menedzselt EC2-példányok futnak).
 
-TODO: referálni a \refstruc{fig:nonvpc} ábrára.
+A MediaLive-csatorna indítása után lehetséges a jelölt URL-re (\verb|rtmp://3.73.170.41:1935/streamzen-dev|) kezdeni a streamelést. Az RTMP-streameléshez az OBS Studio nevű alkalmazást használtam\cite{obsMediaLive}, abban a beállításoknál a ``Stream'' menüben kitöltöttem az egyedi RTMP-szerverem adataival a mezőket (lásd \refstruc{fig:obs}). Nem került felhasználásra egyelőre a kísérlet alatt autentikáció a végpontra.
 
-TODO: képernyőképek az appról használat közben.
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=150mm, keepaspectratio]{figures/obs.png}
+  \caption{Képernyőkép az OBS stream beállításairól.}
+  \label{fig:obs}
+\end{figure}
+
+A weboldalamon a \verb|/live| útvonalon megtekintetettem a beindított streamet. Egy próbálkozást mutat be a \ref{fig:waterfall} képernyőkép, amely a böngészőben a HTTP-kérések vízesését\cite{waterfall} mutatja be.
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=150mm, keepaspectratio]{figures/waterfall.png}
+  \caption{HTTP-kérések vízesése a /live oldalon.}
+  \label{fig:waterfall}
+\end{figure}
+
+Az SPA-alkalmazás a környezeti változóból beállított HLS-végponton kéri le először a \verb|.m3u8| playlistet, amelyből megtudja, mi lesz a következő szegmens, amelyet le kell töltse. Az ábrából látszik, hogy az alapértelmezett 6 másodperces részekre vannak felbontva a szegmensek. Nagyjából 6--7 MB-os szegmensek érkeznek a böngészőbe (már tömörítve a CDN-en keresztül).
+
+A MediaPackage v2-es verziója támogatja a Low Latency HLS (LL-HLS) alapú streamelést is, azonban én még a v1-es verziót használtam és a kliensoldali implementációs is meghagytam a hagyományos HLS-en. A fent ismertetett élő stream vizsgálata folyamán körülbelül 10 másodperces késleltetést érzékeltem. A fenti streamelés késleltetését a kódolási beállítások (mekkora szegmensekre bontsa, hányféle kimenet legyen, milyen hibaaránnyal érkezik a forrásvideó) és a lejátszó bufferelési logikája befolyásolják szinte csak, a nézők száma nem igazán, csupán abban az esetben, ha az már jelentős terhelést fejt ki az AWS hálózati komponenseire. \cite{latency}
