@@ -52,14 +52,14 @@ Különbözik mindkettőnél, hogy milyen fizikai infrastrukturális tervezést 
 
 Lentebb két ábrát (\refstruc{fig:vodsetup} és \refstruc{fig:livesetup}) láthatunk, amelyek absztrakt példákat mutatnak egy VOD-kiszolgálás és egy élő közvetítés résztvevő médiaeszközeire. A rajta feltüntetett protokollok és fájlnevek a későbbi alfejezetekben olvasása során érthetőek lesznek.
 
-\begin{figure}[]
+\begin{figure}
 	\centering
 	\includegraphics[width=120mm, keepaspectratio]{figures/dipterv_vodsetup.png}
 	\caption{Példa egy VOD-kiszolgálás résztvevő eszközeire.}
 	\label{fig:vodsetup}
 \end{figure}
 
-\begin{figure}[]
+\begin{figure}
 	\centering
 	\includegraphics[width=100mm, keepaspectratio]{figures/dipterv_livesetup.png}
 	\caption{Példa egy élő közvetítés résztvevő eszközeire.}
@@ -72,7 +72,7 @@ A streamelést erősen befolyásoló tényező a hálózati feltételek változ�
 
 Az ABR során a forrásvideót több különböző bitrátával dolgozó kodekekkel és különböző felbontással kódoljuk a médiaszerveren, majd lejátszáskor a lejátszó alkalmazás a hálózati feltételek változására reagálva, valamint a fogadó fél számítási kapacitásától függően valós időben választja ki a megfelelő vi\-de\-ó\-strea\-met ezek közül, onnan válogatja a packeteket (\refstruc{fig:ABR}).
 
-\begin{figure}[]
+\begin{figure}
 	\centering
 	\includegraphics[width=140mm, keepaspectratio]{figures/dipterv_abr.png}
 	\caption{Az Adaptive Bitrate Streaming működése.}

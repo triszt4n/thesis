@@ -14,7 +14,7 @@ A szerveroldali csoportban darabokra szedve tulajdonképpen egy REST API helyezk
 
 A szerveroldali csoport események formájában kommunikál az élőadás- és VOD-kezelő az ``orkesztrációs'' csoportban lévő eseménykezelővel. Az orkesztrációs réteg fogja a két csoportot össze, események hatására indíttat konvertálást a konvertáló komponenssel. Ez a komponens tölti fel a videókat a kliensközeli csoport felé, tart összeköttetést a live streaming külső forrásával.
 
-\begin{figure}[]
+\begin{figure}[h]
 	\centering
 	\includegraphics[width=140mm, keepaspectratio]{figures/dipterv_highlevel.png}
 	\caption{Logikai felépítés a követelmények alapján.}
@@ -29,7 +29,7 @@ A korábbi \ref{streamref}. alfejezetben megismert protokollok közül a tervez�
 
 A tervek igazolásához segítségül kerestem az interneten nyílt forráskódú hasonló megoldásokat is. Megtaláltam a Technische Universität München (TUM) egy hallgatói csoportja, a TUM-Dev által fejlesztett az egyetemen is használt VOD és live streaming szolgáltatását, a GoCastot\footnote{\url{https://github.com/TUM-Dev/gocast}}. Ez a rendszer önállóan hosztolható szoftvereket komponál össze, nem felhőnatív. A rendszerben hasonló absztrakt terveket lehet megfigyelni az én megoldásaimhoz (\refstruc{fig:gocast}), ugyanígy HLS-sel szolgálják ki a tartalmakat (lásd \emph{TUM-Live Edge} példányok), viszont a live streamingre saját többportos workereket alkalmaznak (lásd \emph{TUM-Live-Worker} példányok), lehetőség ad viszont saját streamerből RTMP-n keresztül feltölteni élő közvetítést, ahogy én is megvalósítom a saját megoldásomban. Külön mikroszolgáltatás biztosítja a live és VOD streamingen kívüli funkcionalitásokat, a TUM-Live. Ez a megoldás nem teszi lehetővé, hogy a rendszeren kívül készült videót lehessen feltölteni és VOD-ként elérhetővé tenni rajta keresztül.
 
-\begin{figure}[]
+\begin{figure}[h]
 	\centering
 	\includegraphics[width=140mm, keepaspectratio]{figures/gocast.png}
 	\caption{A GoCast architektúrája a dokumentációból.}
@@ -40,52 +40,48 @@ A tervek igazolásához segítségül kerestem az interneten nyílt forráskód�
 
 A rendszert az átlátható kezelés érdekében az AWS-felhőben egy teljesen erre külön készített AWS-fiókba helyeztem, így terveztem meg az architektúrát is. A rendszer egyszerűsített fizikai felülnézetét az AWS-fiókban, az AWS-erőforrások összeköttetését jól összefoglalja az \refstruc{fig:architect}.
 
-Az ábrát olvasva látható, hogy egészen jól elkülönülhetnek ebben a nézetben is csoportokra az egyes erőforrások. A kliensközeli csoportot a CloudFront CDN szolgálja ki, ennek a disztribúciónak adtam domainnevet, így használatba került egy \url{stream.trisz.hu} domain alatti Amazon Route 53 szolgáltatásbeli DNS-zóna is, illetve egy SSL-tanúsítvány is hozzáadásra került. A védelmezésre egy AWS Web Application Firewall web Access Control List -- röviden: egy WAF web ACL -- is bekerült a disztribúció elé. Ezen szolgáltatások az edge szerverfarmokon működnek, az AWS ehhez azt írja elő, hogy az erőforrásokat a ``us-east-1'', azaz az észak-virginiai régióban kell elhelyezni.
-
-A disztribúció után jönnek egy új rétegben először egy ALB-példány, ez és a mögötte lakó erőforrások az ``eu-central-1'' (frankfurti) régión belül is egy saját hálózatba, azaz AWS VPC-be kerültek. Ezenkívül videók S3-vödrét, a React alkalmazás vödrét és a live csatornát mind külön originként tettem a disztribúció mögé, külön-külön útvonalak mintázatokra illeszkedve.
-
-A RTMP-alapú live stream fogadását OBS Studióból a MediaLive kezeli, ami a MediaPackage segítségével továbbítja egy csatornán a tartalmat. A VOD-tartalmakat a MediaConvert konvertálja HLS-adatfolyamba illeszthető formátumba, a kimenetét pedig a S3-vödörbe helyezi. A szerveralkalmazás egy Node.js-alapú web app a terveim alapján, amely NestJS keretrendszerrel kerül kialakításra, Dockerrel konténerizálom és az ECS-be telepítem, azzal menedzselem életciklusát; az ECR-be kerülnek a konténer képei. Az adatbázis egy PostgreSQL példánnyal kerül megvalósításra, amelyet az RDS szolgáltatásban helyezek el menedzselésre.
-
-Az orkesztrációs eseményekre Lambda-függvények reagálnak, az eseményeket központilag az EventBridge hallgatja le szabályokkal és kötteti össze a megfelelő Lambda-függvényekkel. Felhasználásra kerülnek a biztonságos kezelésre IAM-szerepkörök, monitorozásra és naplózásra a CloudWatch, illetve az érzékeny paraméterek tárolására az AWS Secrets Manager.
-
-A kódbázis GitHubon kerül verziókezelésre, ott a CI/CD-folyamatokat GitHub Actions segítségével automatizálom a szerveralkalmazás élesítésére, a React-alkalmazás statikus fájljainak feltöltésére. A Terraform segítségével az infrastruktúrát kód formájában kezelem, a Terragrunt -- amely egy Terraform-kódkezelést segítő kiegészítő eszköz (\emph{Terraform wrapper}) -- pedig a Terraform-modulokat kezeli, hogy a kódbázis ne legyen túl bonyolult.
-
-\vspace{2cm} % remove, if unnecessary
-
-\begin{figure}[]
+\begin{figure}
 	\centering
 	\includegraphics[width=160mm, keepaspectratio]{figures/dipterv_architect.png}
 	\caption{Az AWS-fiók erőforrásainak logikai kapcsolata.}
 	\label{fig:architect}
 \end{figure}
 
-\vspace{2cm} % remove, if unnecessary
+Az egyes erőforrások csoportokra bonthatóak. A kliensközeli csoportot a CloudFront CDN szolgálja ki, készítettem számára egy \url{stream.trisz.hu} domain alatti Route 53 DNS-zónát is, illetve egy SSL-tanúsítványt. A védelmezésre egy AWS Web Application Firewall (WAF) web Access Control List (web ACL) is bekerült a disztribúció elé. Ezen erőforrások habár fizikailag az edge szerverfarmokra kerülnek ki, logikailag őket a \verb|us-east-1|, azaz az észak-virginiai régióban kell elhelyezni.
+
+A disztribúció után jönnek egy új rétegben először egy ALB-példány, ez és a mögötte lakó erőforrások az \verb|eu-central-1| (frankfurti) régión belül is egy saját hálózatba, azaz AWS VPC-be kerültek. Ezenkívül videók S3-vödrét, a React alkalmazás vödrét és a live csatornát mind külön originként tettem a disztribúció mögé, külön-külön útvonalak mintázatokra illeszkedve.
+
+A RTMP-alapú live stream fogadását OBS Studióból a MediaLive kezeli, ami a MediaPackage segítségével továbbítja egy csatornán a tartalmat. A VOD-tartalmakat a MediaConvert konvertálja HLS-adatfolyamba illeszthető formátumba, a kimenetét pedig a S3-vödörbe helyezi. A szerveralkalmazás egy Node.js-alapú web app a terveim alapján, amely NestJS keretrendszerrel kerül kialakításra, Dockerrel konténerizálom és az ECS-be telepítem, azzal menedzselem életciklusát; az ECR-be kerülnek a konténer képei. Az adatbázis egy PostgreSQL-példánnyal kerül megvalósításra, amelyet az RDS szolgáltatásban helyezek el menedzselésre.
+
+Az orkesztrációs eseményekre Lambda-függvények reagálnak, az eseményeket központilag az EventBridge hallgatja le szabályokkal és kötteti össze a megfelelő Lambda-függvényekkel. Felhasználásra kerülnek a biztonságos kezelésre IAM-szerepkörök, monitorozásra és naplózásra a CloudWatch, illetve az érzékeny paraméterek tárolására az AWS Secrets Manager.
+
+A kódbázis GitHubon kerül verziókezelésre, ott a CI/CD-folyamatokat GitHub Actions segítségével automatizálom a szerveralkalmazás élesítésére, a React-alkalmazás statikus fájljainak feltöltésére. Terraformot terveztem bevezetni, amely segítségével az infrastruktúrát kód formájában kezelhetem.
 
 \subsection{Video-on-Demand kiszolgálás folyamata}
 
-Vizsgáljuk meg közelebbről a VOD-tartalom kiszolgálásának folyamatát az AWS-felhőben. A \refstruc{fig:vod1} mutatja be a VOD-tartalom feltöltésének folyamatát, ahol a szerveralkalmazás a nyers videót buffer formájában fogadja HTTPS-en keresztül a böngészőből. A webszerver az S3-vödörbe helyezi, illetve lenyugtázza az adatbázisban, hogy a konvertálási folyamat ezzel elindult. A folyamatot a felhasználói felületen a felhasználók követhetik, ahol a folyamat állapotát mutatja a szerveralkalmazás.
+A VOD-ok kiszolgálásának folyamatát a következőképp terveztem meg. A \refstruc{fig:vod1} mutatja be a VOD-tartalom feltöltésének folyamatát, ahol a szerveralkalmazás a nyers videót buffer formájában fogadja HTTPS-en keresztül a böngészőből. A webszerver az S3-vödörbe helyezi, illetve lenyugtázza az adatbázisban, hogy a konvertálási folyamat ezzel elindult. A folyamatot a felhasználói felületen a felhasználók követhetik, ahol a folyamat állapotát mutatja a szerveralkalmazás.
 
-\begin{figure}[]
+\begin{figure}
 	\centering
-	\includegraphics[height=60mm, keepaspectratio]{figures/dipterv_vod1.png}
+	\includegraphics[height=70mm, keepaspectratio]{figures/dipterv_vod1.png}
 	\caption{Folyamatábra a nyers videó feltöltéséről.}
 	\label{fig:vod1}
 \end{figure}
 
 A \refstruc{fig:vod2} mutatja be, hogy fut le a feltöltés utáni folyamat. Egy konvertálási jobot indító Lambda-függvény feliratkozik a feltöltött videókat tároló S3-vödörre, amely a feltöltés után felkonfigurál egy jobot a MediaConvert számára, megadja a forrásfájlt és az S3-vödröt, ahova majd a job után kell kerüljön a HLS-kompatibilis fájlcsomag. Egy másik Lambda-függvény, amely a MediaConvert-job állapotváltozásaira van feliratkozva, a folyamat végén értesíti a webszervert az ALB-n keresztül, hogy nyugtázza a folyamat jelenlegi státuszát.
 
-\begin{figure}[]
+\begin{figure}
 	\centering
-	\includegraphics[height=60mm, keepaspectratio]{figures/dipterv_vod2.png}
+	\includegraphics[height=70mm, keepaspectratio]{figures/dipterv_vod2.png}
 	\caption{Folyamatábra a feltöltés utáni videófeldolgozásról.}
 	\label{fig:vod2}
 \end{figure}
 
 A \refstruc{fig:vod3} fejti ki egy részről, hogy hogy értesül az adminisztrátor a videó feldolgozottságának állapotáról az API-n keresztül, illetve a UI-on értesülés után mi történik, ha meg is nyitja a már streamelhető videót, amely a CloudFront-disztribúció Video-on-Demand S3-alapú originjén keresztül érhető el.
 
-\begin{figure}[]
+\begin{figure}
 	\centering
-	\includegraphics[height=60mm, keepaspectratio]{figures/dipterv_vod3.png}
+	\includegraphics[height=70mm, keepaspectratio]{figures/dipterv_vod3.png}
 	\caption{Folyamatábra a VOD-tartalom lejátszásáról.}
 	\label{fig:vod3}
 \end{figure}
@@ -94,46 +90,44 @@ A \refstruc{fig:vod3} fejti ki egy részről, hogy hogy értesül az adminisztr�
 
 A live streaming indítását mutatja be a \refstruc{fig:live1}. Az adminisztrátor a stúdióban gombnyomásra megnyitja API-n keresztül a live streamet, amellyel a MediaLive szolgáltatásban a csatorna is elindul, aktívan húzza RTMP-n keresztül a felcsatlakoztatott forrásból a videóanyagot.
 
-\begin{figure}[]
+A \refstruc{fig:live2} pedig bemutatja, miután a live stream elindult, a MediaPackage-csatorna húzza át a konvertált videót a CloudFront-disztribúció elé, így ezen az originjén keresztül lesz elérhető a Cloudfront-disztribúciónak a felhasználók számára, akik a webalkalmazásban a megfelelő útvonalon érik el a live streamet.
+
+\begin{figure}[h]
 	\centering
-	\includegraphics[height=60mm, keepaspectratio]{figures/dipterv_live1.png}
+	\includegraphics[height=70mm, keepaspectratio]{figures/dipterv_live1.png}
 	\caption{Folyamatábra a live stream indításáról.}
 	\label{fig:live1}
 \end{figure}
 
-A \refstruc{fig:live2} pedig bemutatja, miután a live stream elindult, a MediaPackage-csatorna húzza át a konvertált videót a CloudFront-disztribúció elé, így ezen az originjén keresztül lesz elérhető a Cloudfront-disztribúciónak a felhasználók számára, akik a webalkalmazásban a megfelelő útvonalon érik el a live streamet.
-
-\begin{figure}[]
+\begin{figure}[h]
 	\centering
-	\includegraphics[height=60mm, keepaspectratio]{figures/dipterv_live2.png}
+	\includegraphics[height=70mm, keepaspectratio]{figures/dipterv_live2.png}
 	\caption{Folyamatábra a live streamre való kapcsolódásról.}
 	\label{fig:live2}
 \end{figure}
 
 \section{Konfigurációmenedzsment}\label{sec:config}
 
-Nagyobb rendszerek tervezése igényli, hogy megfelelő Konfigurációmenedzsmentet teremtsen köré a tervezőmérnök, hogy a rendszer könnyen karbantartható legyen. A Terraform lehetővé teszi az infrastruktúra építését és az annak felkonfigurálását kód formájában, a kódban való élesítések nyomán friss és dokumentált marad az állapota is ezeknek.
+Nagyobb rendszerek tervezése igényli, hogy megfelelő konfigurációmenedzsmentet teremtsen köré a tervezőmérnök, hogy a rendszer könnyen karbantartható legyen. A Terraform lehetővé teszi az infrastruktúra építését és az annak felkonfigurálását kód formájában, a kódban való élesítések nyomán friss és dokumentált marad az állapota is ezeknek.
 
 Egyetlen környezetet terveztem kialakítani, egy \emph{development}, azaz fejlesztési környezetet, a Terraform modulokat egy befoglaló Terragrunt gyökérmodulba szerveztem, a \verb|streamzen-core| mappába. Az erőforrásokat igyekeztem olyan módon elnevezni, hogy azok tartalmazzák a \verb|streamzen| prefixet és a környezet nevét, például \verb|dev| is tartalmazzák, hogy könnyen lehessen azonosítani őket a későbbiekben. Az erőforrások alapvetően az ``eu-central-1'' régióban helyezkedtem el, a globális erőforrások kivételével.
 
-Terraformban menedzselt infrastruktúra tipikus életciklusa áll a kódból származó tervek előállításából (plan), annak manuális átolvasásából, majd pedig a változtatások aktiválásából (apply). Az automatizálás érdekében GitHub Action munkafolyamatokba terveztem szervezni a Terraform tervek előnézetének generálását -- amely a \verb|terraform plan| parancs kiadasával kezdeményezhető -- , ami minden Pull Request (PR) UI-ján kommentként kerül hozzáadásra a PR-hez, viszont a tervek élesítését (erre használt parancs a \verb|terraform apply|) saját kézzel a saját parancssoromból terveztem megtenni, tekintettel arra, hogy csupán egyedül dolgoztam a kódbázissal.
+Terraformban menedzselt infrastruktúra tipikus életciklusa áll a kódból származó tervek előállításából (plan), annak manuális átolvasásából, majd pedig a változtatások aktiválásából (apply). Az automatizálás érdekében GitHub Action-munkafolyamatokba terveztem szervezni az élesítési tervek előnézetének generálását -- amely a \verb|terraform plan| parancs kiadasával kezdeményezhető -- , ami minden Pull Request (PR) UI-ján kommentként kerül hozzáadásra a PR-hez, viszont a tervek élesítését (erre használt parancs a \verb|terraform apply|) saját kézzel a saját parancssoromból terveztem megtenni, tekintettel arra, hogy csupán egyedül dolgoztam a kódbázissal.
 
-Hogy az AWS-fiók erőforrásaihoz hozzáférést kaphasson a munkafolyamat is, a GitHub Action munkafolyamata számára OpenID Connect (OIDC) felállításával terveztem az erre szánt AWS-szerepkör felvételét megvalósítani (\refstruc{fig:githuboidc}\footnote{A kép forrása: \url{https://mahendranp.medium.com/configure-github-openid-connect-oidc-provider-in-aws-b7af1bca97dd}}). \cite{githuboidc}
-
-\begin{figure}[]
+\begin{figure}[h]
 	\centering
 	\includegraphics[width=150mm, keepaspectratio]{figures/githuboidc.png}
 	\caption{Workflow autorizálása AWS-szerepkörre OIDC-val.}
 	\label{fig:githuboidc}
 \end{figure}
 
-A konfigurációmenedzsment részeként még a változtatások hibamentes élesítése érdekében statikus ellenőrzést terveztem bevezetni hasonlóan GitHub Action-munkafolyamatokból a React-kód és a szerveralkalmazás Node.js-kódjára is.
+Hogy az AWS-fiók erőforrásaihoz hozzáférést kaphassanak az egyes munkafolyamatok, azok számára OpenID Connect (OIDC) felállításával terveztem az erre szánt AWS-szerepkör felvételét megvalósítani (\refstruc{fig:githuboidc}). \cite{githuboidc}
 
 A szerveralkalmazás egységként való kezelése érdekében és a könnyű telepíthetőségért -- ahogy ezt a nem funkcionális követelmények is megkívánták -- konténerizálni terveztem a Node.js-szerveralkalmazást Docker-konténerbe való komponálással, a buildelési folyamatot Dockerfile-lal kívántam megvalósítani hozzá. GitHub Action került alkalmazásra az buildelt Docker-kép ECR-be való automatizált feltöltésére (\refstruc{fig:ecr}), a React-kód buildelésére és S3-vödörbe való feltöltésére.
 
-\begin{figure}[]
+\begin{figure}
 	\centering
-	\includegraphics[width=140mm, keepaspectratio]{figures/ecr.png}
+	\includegraphics[width=150mm, keepaspectratio]{figures/ecr.png}
 	\caption{Folyamatábra a Docker-kép ECR-be feltöltéséről.}
 	\label{fig:ecr}
 \end{figure}

@@ -6,7 +6,7 @@ A megjelenítési réteg alatt található szerveroldali folyamatok implementác
 
 A szerveroldal erőforrásait igyekeztem mindet egy közös VPC-be szervezni, amely lehetővé teszi, hogy a komponensek egymást lássák, és biztonságosan kommunikáljanak egymással alhálózataik között. A VPC-n belül az összetartozó elemekhez két-két alhálózatot hoztam létre. A legtöbb AWS-szolgáltatás a magas rendelkezésreállás érdekében legalább kettő konkrét adatközpontba kell kitelepítése kerüljön, azaz az AWS saját terminológiáját használva: két \emph{Availibility Zone}-ba (AZ) kell elhelyezésre kerüljenek a konkrét erőforrások. Ennek megfelelően az eu-central-1 régió alatti \emph{eu-central-1a} és \emph{eu-central-1b} AZ-ba szerveztem az egyes alhálózataim. Az alhálózatok közötti forgalom irányítását útválasztó táblák (angolul \emph{route table}) segítségével végeztem, amelyek biztosítják, hogy a komponensek közötti kommunikáció megfelelően működjön. Az útválasztó táblák konkrét bejegyzéseit, valamint a felhasznált IP-tartományokat is tartalmazza a \refstruc{fig:vpc}.
 
-\begin{figure}[]
+\begin{figure}
   \centering
   \includegraphics[width=150mm, keepaspectratio]{figures/dipterv_vpc.png}
   \caption{Részletes architektúraábra a VPC-ről.}
@@ -25,7 +25,7 @@ A szervernek fontos a kapcsolódása az adatbázisra, amely egy külön privát 
 
 Az ECS-klaszterben működő szervernek több külhálózaton működő szolgáltatás felé kell tudnia kommunikálni. Ezek a VPC-n kívüli komponensek a \refstruc{fig:nonvpc} segítségével kerülnek vizuálisan ismertetésre.
 
-\begin{figure}[]
+\begin{figure}
   \centering
   \includegraphics[width=150mm, keepaspectratio]{figures/dipterv_nonvpc.png}
   \caption{Részletes architektúraábra a VPC-ből kifelé és befelé kommunikáló komponensekkel.}
@@ -63,7 +63,7 @@ A \verb|CrewMembership| entitáshoz tartozó tábla a \verb|Vod| és a \verb|Use
 
 \begin{figure}[h]
   \centering
-  \includegraphics[width=155mm, keepaspectratio]{figures/prismaliser.png}
+  \includegraphics[width=150mm, keepaspectratio]{figures/prismaliser.png}
   \caption{A Prisma-séma vizuális reprezentációja.}
   \label{fig:prismaliser}
 \end{figure}
@@ -72,9 +72,9 @@ A \verb|CrewMembership| entitáshoz tartozó tábla a \verb|Vod| és a \verb|Use
 
 Az alkalmazásnak korábbi alfejezetekben már kiderült, hogy vannak külső függőségei. Ezen függőségekhez való hozzáféréshez a környezeti változók használata elengedhetetlen. A ECS-ben futó konténer környezeti változóinak beállítására az ECS is ad lehetőséget a \ref{lst:mainApi}. kódrészlet mutatja be a Terraform-kód egy részletét, amely átpasszolja az alkalmazás számára a következő fontos paramétereket.
 
-Az AuthSCH SSO-ban felvett kliensünk azonosítóját és titkos kulcsát a \verb|AUTHSCH_CLIENT_ID| és \verb|AUTHSCH_CLIENT_SECRET| környezeti változók tárolják, ezek értékeit ahogy a kódból is látható egy-egy SSM Parameter Store-ból szerzi meg a CI/CD-folyamat futtatása során a Terraform-kliensünk (értsd: a referált erőforrás elején \verb|data| kulcsszó jelöli, hogy \emph{data source}-ként éri kéri le a Terraform az AWS CDK-n keresztül az értékét). Ezen Param Store kulcs-érték párokhoz az értéket az AuthSCH saját oldalán szereztem meg \url{https://auth.sch.bme.hu} oldalon található webes felületén, ahol korábban már megszerzett SCHacc-fiókomba való belépés után új OAuth-kliens beregisztrálása után tudtam magamnak generálni a kívánt értékeket (ID és client secret).
+Az AuthSCH SSO-ban felvett OAuth-kliensünk azonosítóját és titkos kulcsát a \verb|AUTHSCH_CLIENT_ID| és \verb|AUTHSCH_CLIENT_SECRET| környezeti változók tárolják, ezek értékeit ahogy a kódból is látható egy-egy SSM Parameter Store-ból szerzi meg a CI/CD-folyamat futtatása során a Terraform-kliensünk (értsd: a referált erőforrás elején \verb|data| kulcsszó jelöli, hogy \emph{data source}-ként éri kéri le a Terraform az AWS CDK-n keresztül az értékét). Ezen Param Store kulcs-érték párokhoz az értéket az AuthSCH saját oldalán szereztem meg \url{auth.sch.bme.hu} oldalon található webes felületén, ahol korábban már megszerzett SCHAcc-fiókomba való belépés után új OAuth-kliens beregisztrálása után tudtam magamnak generálni a kívánt értékeket (ID és client secret).
 
-A PostgreSQL-adatbázis felhasználónevét és jelszavát (\verb|POSTGRES_USER| és \verb|POSTGRES_PASSWORD|) is meg kell tudjuk adni környezeti változón keresztül az alkalmazásunknak, ezek értékét is SSM Param Store-okba tettem bele, viszont a felhasználónevet már magam találtam ki, a jelszót pedig magam generáltam kézzel.
+Egy felhasználónevet és jelszót (\verb|POSTGRES_USER| és \verb|POSTGRES_PASSWORD|) is meg kell tudjuk adni környezeti változón keresztül az alkalmazásunknak, amellyel autentikál az adatbázisba, ezek értékét is SSM Param Store-okba tettem bele, viszont a felhasználónevet már magam találtam ki, a jelszót pedig magam generáltam kézzel.
 
 Az alkalmazásnak tudnia kell bizonyos átirányítások lekezelésére a kliensünk bázis URL-jét, így azt megadtam környezeti változóban (\verb|FRONTEND_CALLBACK|). A doménnevet változtathatónak véltem hagyni, ezért is került Terraform-változóba az értéke (\verb|var.domain_name|).
 
@@ -129,9 +129,9 @@ async upload(
 
 A feltöltéshez szükséges fájlok a kliensoldalon kerülnek kiválasztásra, és a POST metódusú \verb|/api/videos/:id/upload| végponton keresztül kerülnek feltöltésre. Ezt a végpontot hallgatja le a \verb|VideoController| osztálybéli \verb|upload| függvény is. A függvény dekorátorai közül a \verb|@Post| jelöli azt, amiképp hallgat a kérésekre (POST metódussal és a jelölt útvonalon). A \verb|@UseGuards| dekorátor az autentikáció szükségességét biztosítja a kérések végbemeneteléhez, amelyet a mi esetünkben a \verb|JwtGuard| osztály valósít meg. A \verb|@UseInterceptors| dekorátor pedig egy interceptort állít be a függvény elé, a fájlok feltöltését segíti elő, amelyet a \verb|FileInterceptor| osztály valósít meg. Ez az osztály a NestJS alatt működő Express keretrendszerben működő \emph{Multer} nevű Node.js-middleware-t hasznosítja, amellyel így tehát képes az osztály mögötti logika a HTTP-alapú bájtfolyamot hatékonyan feldolgozni/parse-olni, és elrejteni előlünk a sok-sok kihívását egy fájlfeltöltésnek. A függvény paramétereiben a \verb|file| paraméter a \verb|@UploadedFile| dekorátoron keresztül válik a feltöltött fájl reprezentációjává, típusa is a \verb|File| interfész lesz.
 
-A VideoService-ben működő \verb|upload| függvény felé lesz a kapott fájl bufferje továbbítva, végül a service-függvény eredményéből született fájlnévvel kerül az adatbázisba is lementésre az entitásként a videó is a \verb|afterUpload| függvény által.
+A \verb|VideoService|-ben működő \verb|upload| függvény felé lesz a kapott fájl bufferje továbbítva, végül a service függvény eredményéből született fájlnévvel kerül az adatbázisba is lementésre az entitásként a videó is a \verb|afterUpload| függvény által.
 
-A VideoService az AWS SDK S3 API-ját használja a fájlok vödörbe való feltöltésére. Ehhez létrehoztam tagváltozóként a \verb|s3Client|-et. A \verb|upload| függvény először átalakítja a fájlnevet, megtartja a kiterjesztést, viszont a dátumot szerkeszti bele a konkrét névbe. Majdpedig készít egy \verb|PutObjectCommand| típusú objektumot, amellyel a megfelelő helyre és névvel kerül feltöltésre az \verb|s3Client|-en keresztül a fájl.
+A \verb|VideoService| az AWS SDK S3 API-ját használja a fájlok vödörbe való feltöltésére. Ehhez létrehoztam tagváltozóként a \verb|s3Client|-et. A \verb|upload| függvény először átalakítja a fájlnevet, megtartja a kiterjesztést, viszont a dátumot szerkeszti bele a konkrét névbe. Majdpedig készít egy \verb|PutObjectCommand| típusú objektumot, amellyel a megfelelő helyre és névvel kerül feltöltésre az \verb|s3Client|-en keresztül a fájl.
 
 \begin{minipage}{0.92\textwidth}
   \begin{lstlisting}[
@@ -162,7 +162,7 @@ async upload(id: string, fileName: string, file: Buffer) {
 
 \section{A konténerizált környezet}
 
-A konténerizált webalkalmazás kialakítására a Docker ökoszisztémájának eszközeit vettem alkalmazásba. A fejlesztés során a Docker Desktop alkalmazást használtam, amely lehetővé tette a konténerek helyi futtatását, a Docker Compose segítségével pedig a Node.js-alkalmazás mellé felvettem egy PostgreSQL-adatbázis konténerét is, azok között a Compose-kóddal a konténerek közötti kommunikációt is könnyen meg tudtam valósítani.
+A konténerizált webalkalmazás kialakítására a Docker ökoszisztémájának eszközeit vettem alkalmazásba. A fejlesztés során a \emph{Docker Desktop} alkalmazást használtam, amely lehetővé tette a konténerek helyi futtatását, a \emph{Docker Compose} segítségével pedig a Node.js-alkalmazás mellé felvettem egy PostgreSQL-adatbázis konténerét is, azok között a Compose-kóddal a konténerek közötti kommunikációt is könnyen meg tudtam valósítani.
 
 \begin{figure}[h]
   \centering
@@ -171,7 +171,7 @@ A konténerizált webalkalmazás kialakítására a Docker ökoszisztémájának
   \label{fig:ecscluster}
 \end{figure}
 
-Az élesítése a Node.js-alkalmazásnak a korábban is ismertetett módon, egy ECS-klaszterba telepítve került kivitelezésre. A felkonfiguráláshoz szükséges Terraform-kódot a \ref{lst:ecsCluster}. kódrészlet mutatja be. A klaszterba csupán egy szolgáltatás került be, a mi REST API-nkat kiszolgáló app. A szolgáltatás felépítő elemeit, azok működését a \refstruc{fig:ecscluster} is bemutatja.
+Az élesítése a Node.js-alkalmazásnak a korábban is ismertetett módon, egy ECS-klaszterba telepítve került kivitelezésre. A szolgáltatás felépítő elemeit, azok működését a \refstruc{fig:ecscluster} mutatja be. A felkonfiguráláshoz szükséges Terraform-kódot a \ref{lst:ecsCluster}. kódrészlet mutatja be. A klaszterba csupán egy szolgáltatás került be: a REST API-t kiszolgáló webszerver.
 
 Egy taszkdefiníciója van a teljes szolgáltatásnak, emiatt egyfajta taszk fog futni is, az fogja kitelepíteni a konkrét konténerpéldányokat. A taszk a konténerek képét természetesen a korábban ismertetett ECR-tárolóból tölti le, majd buildeli le. A konténerek erőforrásmenedzsmentjét a Fargate szolgáltatásra hagytam (lásd: \verb|launch type|). Az ECS-szolgáltatáshoz definiálja kapcsolatát az ALB-példánnyal (lásd: \verb|load balancer| blokk a Terraform-kódban), az ALB pedig képes automatikusan felderíteni a konkrét konténereket, azokra pedig ráirányítani a forgalmat.
 
@@ -297,7 +297,7 @@ A kliensoldalon is került ismertetésre \ref{sec:ciCd} alfejezetben egy olyan G
 
 Ennek a folyamatnak az esetében egyszerűbb volt a build- és telepítő folyamatot egybeépíteni, egy job végzi a kettőt. Ennek megfelelően a munkafolyamat miután megszerezte az AWS-fiókhoz hitelesítő adatokat, a következő lépéseket hajtja végre: belép az ECR-beli Docker Registrybe, majd a Docker-képfájlt buildeli, végül pedig feltölti a saját ECR-képtárolónkba. A \ref{lst:deployServer}. kódrészlet mutatja be a \verb|deploy-server.yml| fájl releváns részét, amely a kifejtett lépéseket hajtja végre.
 
-A szerveroldali Node.js-kód ellenőrzésére is készült egy GitHub Actions-munkafolyamat, amely a \verb|lint-server.yml| fájlban található és Pull Requestek létrehozásakor fut le. Ez a munkafolyamat a kliensoldali ellenőrzéshez hasonlóan a \verb|eslint| és a \verb|prettier| eszközöket használja a kód statikus ellenőrzésére és formázására. A munkafolyamat végén utolsó lépésként pedig az NPM-projekt buildelése van ellenőrzésképp.
+A szerveroldali Node.js-kód ellenőrzésére is készült egy CI/CD-folyamat, amely a \verb|lint-server.yml| fájlban található és Pull Requestek létrehozásakor fut le. Ez a munkafolyamat a kliensoldali ellenőrzéshez hasonlóan a \verb|eslint| és a \verb|prettier| eszközöket használja a kód statikus ellenőrzésére és formázására. A munkafolyamat végén utolsó lépésként pedig az NPM-projekt buildelése van ellenőrzésképp.
 
 \begin{minipage}{0.92\textwidth}
   \begin{lstlisting}[
@@ -332,13 +332,13 @@ deploy:
 
 A videófeltöltés és live indítás alfolyamatai a rendszernek implementációi eseményvezérelt architektúrában kerültek kivitelezésre (\emph{event-drive architecture}, EDA\cite{eda}). Ennek az architektúrának egy eleme a Node.js-szerver is, amely a korábbi alfejezetekben került bemutatásra. A feltöltés megtörténik a Node.js REST API-ján keresztül, majd pedig beindul egy másodlagos folyamat, amely a feltöltött fájlok átkonvertálásáért felelős. A feltöltés az S3-vödrön egy \verb|"s3:ObjectCreated"| eseményt generál, amelyet egy Lambda-függvény kap el, a \verb|streamzen-job-starter-dev| (\refstruc{fig:nonvpc}).
 
-A Lambda-függvény kódja összekomponálja az konvertáláshoz szükséges MediaConvert-job definícióját, amely a feltöltött fájlt átkonvertálja HLS-folyamba helyezhetővé, és az elkészült fájlokat egy S3-vödörbe helyezi el (\verb|streamzen-static-assets-dev-bucket|).
+A Lambda-függvény célja megkomponálni az konvertáláshoz szükséges job definícióját, amely a feltöltött fájlt átkonvertálja HLS-folyamba helyezhetővé, és az elkészült fájlokat egy S3-vödörbe helyezi el (\verb|streamzen-static-assets-dev-bucket|).
 
 \subsection{A MediaConvert-jobot indító Lambda-függvény}
 
 A függvénynek hat környezeti változót adtam meg, ezek mind kellenek a MediaConvert-job felépítésére, a legfontosabb kerülnek bemutatásra. Az AWS-fiókra egyedileg generálódik egy MediaConvert API HTTP-végpont, és ahhoz, hogy ezt megkapjuk, az AWS CLI segítségével hívni kell a következő parancsot: \verb|aws| \verb|mediaconvert| \verb|describe-endpoints|. A kapott URI-t a \verb|MEDIACONVERT_ENDPOINT| környezeti változóban passzolom át. Az \verb|IAM_ROLE_ARN| az IAM-szerepkör ARN-je, feljogosítja arra a függvényt, hogy CloudWatch-ba naplózzon és az \verb|OUTPUT_BUCKET_URI| és \verb|INPUT_BUCKET_URI| változókban jelölt kimeneti és bemeneti S3-vödrökben tudjon olvasni, létrehozni.
 
-A \ref{lst:jobStarterJs}. kódrészlet részletezi a fontos részeit a teljes függvény kódjának. A \verb|assembleJobCommand| függvény építi fel a MediaConvert API-ja számára a job paramétereit egy óriási JavaScript-objektumban. A következőket lehet leszűrni az objektumból:
+A \ref{lst:jobStarterJs}. kódrészlet emeli ki jelentős részeit a Lambda kódjának. A \verb|assembleJobCommand| függvény építi fel a MediaConvert API-ja számára a job paramétereit egy óriási JavaScript-objektumban. A következőket lehet leszűrni az objektumból:
 
 \begin{itemize}
   \setlength{\itemsep}{1pt}
@@ -349,13 +349,13 @@ A \ref{lst:jobStarterJs}. kódrészlet részletezi a fontos részeit a teljes f�
           \setlength{\itemsep}{1pt}
           \setlength{\parskip}{0pt}
           \setlength{\parsep}{0pt}
-          \item Kimenet: 1080p képmagasság, max videóbitráta 10 Mbps, hangbitráta 256 kbps
-          \item Kimenet: 720p képmagasság, max videóbitráta 5 Mbps, hangbitráta 192 kbps
-          \item Kimenet: 480p képmagasság, max videóbitráta 2 Mbps, hangbitráta 128 kbps
-          \item Kimenet: 360p képmagasság, max videóbitráta 1 Mbps, hangbitráta 96 kbps
+          \item Kimenet: 1080p képmagasság, max. videóbitráta 10 Mbps, hangbitráta 256 kbps
+          \item Kimenet: 720p képmagasság, max. videóbitráta 5 Mbps, hangbitráta 192 kbps
+          \item Kimenet: 480p képmagasság, max. videóbitráta 2 Mbps, hangbitráta 128 kbps
+          \item Kimenet: 360p képmagasság, max. videóbitráta 1 Mbps, hangbitráta 96 kbps
         \end{enumerate}
   \item \textbf{Kimenetekre azonos mozgóképtulajdonságok}: HLS formátum, H.264 kódolású, 6 másodperces szegmensek, \emph{Quality-Defined Variable Bitrate} (QVBR) bitráta\cite{qvbr}.
-  \item \textbf{Kimenetekre azonos hangtulajdonságok}: AAC kódolás, konstans bitráta (CBR), 48 kHz mintavételezés, 2 csatorna.
+  \item \textbf{Kimenetekre azonos hangtulajdonságok}: AAC audiókódolás, konstans bitráta (CBR), 48 kHz mintavételezés, 2 csatorna.
 \end{itemize}
 
 Minden más adat/konténertulajdonság, amit nem közöltem, az az alapértelmezett maradt vagy öröklődik a forrás videófájlból.
@@ -422,7 +422,7 @@ export const handler = async (event, context) => {
   \label{fig:processing}
 \end{figure}
 
-A \refstruc{fig:processing} bemutatja, miképp kerül visszajelzésre a felületen az, hogy hol áll a feldolgozottsága egy feltöltött videónak. A képernyőképen jelzett ``BSS Videó'' nevű projektbe egy 91 MB-os 1 perc 43 másodperc hosszú videófájl került feltöltésre. A feldolgozást megvizsgáltam a MediaConvert konzoljáról, a job 42 másodpercig tartott. A feltöltött videó paraméterei ezek voltak:
+A \refstruc{fig:processing} bemutatja, miképp kerül visszajelzésre a felületen az, hogy hol áll a feldolgozottsága egy feltöltött videónak. A képernyőképen jelzett ``BSS Videó'' nevű projektbe egy 91 MB-os 1 perc 43 másodperc hosszú videófájl került feltöltésre. A feldolgozást megvizsgáltam a MediaConvert konzoljáról, a job 42 másodpercig tartott. A feltöltött videó további paraméterei ezek voltak:
 
 \begin{itemize}
   \setlength{\itemsep}{1pt}
@@ -435,7 +435,7 @@ A \refstruc{fig:processing} bemutatja, miképp kerül visszajelzésre a felület
 \begin{figure}[h]
   \centering
   \includegraphics[width=150mm, keepaspectratio]{figures/browser_slow4g.png}
-  \caption{Képernyőkép a böngészőben a packetek érkezéséről (Slow 4G).}
+  \caption{Képernyőkép a HTTP-packetek érkezéséről (Slow 4G).}
   \label{fig:slow4g}
 \end{figure}
 
@@ -480,11 +480,11 @@ resource "aws_cloudwatch_event_target" "this" {
 
 \section{A MediaLive és MediaPackage összekötése}
 
-A MediaLive szolgáltatásban fellőttem a tervezett egyetlen csatornát, amelyre egy RTMP push alapú inputot kötöttem be. A létrehozott inputhoz az AWS rendelt IP-t, portot, a kapott URL így ez lett: rtmp://3.73.170.41:1935/streamzen-dev. A csatorna úgy lett felkonfigurálva, hogy maximum 20 Mbps bitráta mellett 1080p-s felbontású videófolyamot tudjon fogadni, a hangot pedig AAC kódolásúként, 256 kbps bitrátával. A MediaLive-csatornából átvezetett folyam két kimenetet képez, egy 8 Mbps célbitrátájú 1080p-s kimenetet ad, illetve egy 3,3 Mbps célbitrátájú 720p-s kimenetet. A MediaPackage szolgáltatásban is egyetlen csatornát hoztam létre, amely a MediaLive-csatorna kimeneteit fogadja be, és az átkonvertálja HLS-formátumú folyamra.
+A MediaLive szolgáltatásban fellőttem a tervezett egyetlen csatornát, amelyre egy RTMP push alapú inputot kötöttem be. A létrehozott inputhoz az AWS rendelt IP-t, portot, a kapott URL így ez lett: \url{rtmp://3.73.170.41:1935/streamzen-dev}. A csatorna úgy lett felkonfigurálva, hogy maximum 20 Mbps bitráta mellett 1080p-s felbontású videófolyamot tudjon fogadni, a hangot pedig AAC kódolásúként, 256 kbps bitrátával. A MediaLive-csatornából átvezetett folyam két kimenetet képez, egy 8 Mbps célbitrátájú 1080p-s kimenetet ad, illetve egy 3,3 Mbps célbitrátájú 720p-s kimenetet. A MediaPackage szolgáltatásban is egyetlen csatornát hoztam létre, amely a MediaLive-csatorna kimeneteit fogadja be, és az átkonvertálja HLS-formátumú folyamra.
 
 A MediaLive-csatornának még szüksége volt egy IAM-szerepkörre, amelyben megadtam a szerepkörnek minden olyan jogosultságot, amely szükséges a MediaPackage-csatornába való átvezetéshez számára, illetve a CloudWatch-ba való naplózásra és a szükséges hálózati/EC2-hez kapcsolódó jogokat is megkapta (a MediaLive hátterében menedzselt EC2-példányok futnak).
 
-A MediaLive-csatorna indítása után lehetséges a jelölt URL-re (\verb|rtmp://3.73.170.41:1935/streamzen-dev|) kezdeni a streamelést. Az RTMP-streameléshez az OBS Studio nevű alkalmazást használtam\cite{obsMediaLive}, abban a beállításoknál a ``Stream'' menüben kitöltöttem az egyedi RTMP-szerverem adataival a mezőket (lásd \refstruc{fig:obs}). Nem került felhasználásra egyelőre a kísérlet alatt autentikáció a végpontra.
+A MediaLive-csatorna indítása után lehetséges az input URL-re felcsatlakozva kezdeni a streamelést. Az RTMP streameléshez az OBS Studio nevű alkalmazást használtam\cite{obsMediaLive}, abban a beállításoknál a ``Stream'' menüben kitöltöttem az egyedi RTMP-szerverem adataival a mezőket (lásd \refstruc{fig:obs}). Nem került felhasználásra egyelőre a kísérlet alatt autentikáció a végpontra.
 
 \begin{figure}[ht]
   \centering

@@ -44,7 +44,7 @@ Szoftveres megoldásaik közé tartoznak a következők:
 
 Ezeken kívül az AWS szolgáltat még fizikai hardvereket is a streaming könnyítésére és a nagy számításigények kiszolgálására, ezek közé tartozik például a AWS Elemental Link, amely egy HDMI- és SDI-portokkal rendelkező eszköz, lehetővé teszi a helyszíni videóforrások közvetlenül a felhőbe való továbbítását. A szoftveres és hardveres megoldások összekötésére egy példát szolgáltat mind VOD-ok és élő adások kiszolgálására a \refstruc{fig:vodlive}.
 
-\begin{figure}[]
+\begin{figure}
 	\centering
 	\includegraphics[width=120mm, keepaspectratio]{figures/dipterv_vodlive.png}
 	\caption{Példa AWS Elemental szolgáltatások architektúrába kötésére.}
@@ -55,7 +55,7 @@ Ezeken kívül az AWS szolgáltat még fizikai hardvereket is a streaming könny
 
 Az Amazon Interactive Video Service (IVS) egy teljesen AWS-kezelt, skálázható, és megbízható élő videó streaming Software-as-a-Service (SaaS), amely lehetővé teszi a fejlesztők számára, hogy gond nélkül integrálják az élő streaming funkcionalitását a saját alkalmazásaikba. Az IVS az Elemental szolgáltatásokhoz képest end-to-end megoldást kínál kis késleltetésű többnézős alkalmazásra: HLS-alapú kiszolgálás, körülbelül 5 másodperces késleltetést szokott biztosítani; valamint valós idejű alkalmazásra is: WebRTC-alapú kiszolgálás. \cite{Ivs} A forrásvideó-kódolástól a tartalomkiszolgálásig minden szükséges funkciót biztosít (\refstruc{fig:ivselemental}\footnote{A kép forrása: \url{https://aws.amazon.com/blogs/media/awse-choosing-aws-live-streaming-solution-for-use-case/}}), nekünk csupán a Software Development Kitjét (SDK) kell használni a saját alkalmazásunkban, és a többit az AWS-re bízhatjuk. Ezenkívül biztosít olyan funkcionalitásokat, mint chatszobák és szavazások szolgáltatása, amelyeket könnyen integrálhatunk ezekbe az adásokba.
 
-\begin{figure}[]
+\begin{figure}
 	\centering
 	\includegraphics[width=120mm, keepaspectratio]{figures/aws_media.png}
 	\caption{Amazon IVS és az AWS Elemental szolgáltatások összehasonlítása.}
@@ -146,7 +146,7 @@ A virtualizáció egy típusa a \emph{konténerizáció}, amely lehetővé teszi
 
 A konténer egyfajta szabványosított egység, amely tartalmazza az alkalmazás kódját, a szükséges függőségeket (könyvtárakat), a konfigurációs fájlokat, és amire az alkalmazásnak szüksége van a futtatáshoz.
 
-\begin{figure}[]
+\begin{figure}
 	\centering
 	\includegraphics[width=120mm, keepaspectratio]{figures/virtudocker.png}
 	\caption{Virtuális gépek és konténerek architekturális összehasonlítása.}
