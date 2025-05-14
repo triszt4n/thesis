@@ -52,7 +52,7 @@ Különbözik mindkettőnél, hogy milyen fizikai infrastrukturális tervezést 
 
 Lentebb két ábrát (\refstruc{fig:vodsetup} és \refstruc{fig:livesetup}) láthatunk, amelyek absztrakt példákat mutatnak egy VOD-kiszolgálás és egy élő közvetítés résztvevő médiaeszközeire. A rajta feltüntetett protokollok és fájlnevek a későbbi alfejezetekben olvasása során érthetőek lesznek.
 
-\begin{figure}
+\begin{figure}[h]
 	\centering
 	\includegraphics[width=120mm, keepaspectratio]{figures/dipterv_vodsetup.png}
 	\caption{Példa egy VOD-kiszolgálás résztvevő eszközeire.}
@@ -85,7 +85,7 @@ Tiszta, hogy az ABR-t megvalósító rendszer előnyös mind a VOD, mind az él�
 
 Videó streamelésére -- másképp fogalmazva: valamely korábban ismertetett formátumban tárolt videófájl adatfolyamba való illesztésére -- különböző hálózati protokollok palettája áll rendelkezésünkre.
 
-Néhány ismertebb streaming használatára kitalált protokoll létrejöttük időrendjében \cite{StreamingHistory}:
+Néhány ismertebb célprotokoll létrejöttük időrendjében \cite{StreamingHistory}:
 
 \begin{itemize}
 	\setlength{\itemsep}{1pt}
@@ -99,7 +99,7 @@ Néhány ismertebb streaming használatára kitalált protokoll létrejöttük i
 	\item Dynamic Adaptive Streaming over HTTP (DASH, 2012)
 \end{itemize}
 
-Jelen alfejezet ezen alkalmazásrétegben alkalmazott protokollok (Layer 7) közül vizsgálja meg a legelterjedtebb protokollokat, megemlítve, milyen szállítási rétegű protokollokkal (Layer 4) tudnak együttműködni.
+Jelen alfejezet ezen alkalmazásrétegben alkalmazott protokollok (Layer 7) közül vizsgálja meg a legelterjedtebbeket, kitérve arra is, milyen szállítási rétegű protokollokkal (Layer 4) tudnak együttműködni.
 
 \subsection{Real-Time Messaging Protocol}
 
