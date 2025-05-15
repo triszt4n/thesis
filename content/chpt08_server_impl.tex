@@ -478,7 +478,7 @@ resource "aws_cloudwatch_event_target" "this" {
 \end{lstlisting}
 \end{minipage}
 
-\section{A MediaLive és MediaPackage összekötése}
+\section{A MediaLive és MediaPackage összekötése}\label{sec:mediaLive}
 
 A MediaLive szolgáltatásban fellőttem a tervezett egyetlen csatornát, amelyre egy RTMP push alapú inputot kötöttem be. A létrehozott inputhoz az AWS rendelt IP-t, portot, a kapott URL így ez lett: \url{rtmp://3.73.170.41:1935/streamzen-dev}. A csatorna úgy lett felkonfigurálva, hogy maximum 20 Mbps bitráta mellett 1080p-s felbontású videófolyamot tudjon fogadni, a hangot pedig AAC kódolásúként, 256 kbps bitrátával. A MediaLive-csatornából átvezetett folyam két kimenetet képez, egy 8 Mbps célbitrátájú 1080p-s kimenetet ad, illetve egy 3,3 Mbps célbitrátájú 720p-s kimenetet. A MediaPackage szolgáltatásban is egyetlen csatornát hoztam létre, amely a MediaLive-csatorna kimeneteit fogadja be, és az átkonvertálja HLS-formátumú folyamra.
 
@@ -493,15 +493,30 @@ A MediaLive-csatorna indítása után lehetséges az input URL-re felcsatlakozva
   \label{fig:obs}
 \end{figure}
 
-A weboldalamon a \verb|/live| útvonalon megtekintetettem a beindított streamet. Egy próbálkozást mutat be a \ref{fig:waterfall} képernyőkép, amely a böngészőben a HTTP-kérések vízesését\cite{waterfall} mutatja be.
+\chapter{Elkészült funkciók tesztelése}
+
+A weboldalamon a \verb|/live| útvonalon megtekintettem az előzőleg (\ref{sec:mediaLive}. alfejezet) beindított streamet (\refstruc{fig:waterfall1}). Egy próbálkozást mutat be a \refstruc{fig:waterfall2} képernyőkép, amely a böngészőben a HTTP-kérések vízesését\cite{waterfall} mutatja be.
 
 \begin{figure}[h]
   \centering
-  \includegraphics[width=150mm, keepaspectratio]{figures/waterfall.png}
+  \includegraphics[width=100mm, keepaspectratio]{figures/waterfall1.png}
+  \caption{A /live útvonalon látható aloldal.}
+  \label{fig:waterfall1}
+\end{figure}
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=100mm, keepaspectratio]{figures/waterfall2.png}
   \caption{HTTP-kérések vízesése a /live oldalon.}
-  \label{fig:waterfall}
+  \label{fig:waterfall2}
 \end{figure}
 
 Az SPA-alkalmazás a környezeti változóból beállított HLS-végponton kéri le először a \verb|.m3u8| playlistet, amelyből megtudja, mi lesz a következő szegmens, amelyet le kell töltse. Az ábrából látszik, hogy az alapértelmezett 6 másodperces részekre vannak felbontva a szegmensek. Nagyjából 6--7 MB-os szegmensek érkeznek a böngészőbe (már tömörítve a CDN-en keresztül).
 
-A MediaPackage v2-es verziója támogatja a Low Latency HLS (LL-HLS) alapú streamelést is, azonban én még a v1-es verziót használtam és a kliensoldali implementációs is meghagytam a hagyományos HLS-en. A fent ismertetett élő stream vizsgálata folyamán körülbelül 10 másodperces késleltetést érzékeltem. A fenti streamelés késleltetését a kódolási beállítások (mekkora szegmensekre bontsa, hányféle kimenet legyen, milyen hibaaránnyal érkezik a forrásvideó) és a lejátszó bufferelési logikája befolyásolják szinte csak, a nézők száma nem igazán, csupán abban az esetben, ha az már jelentős terhelést fejt ki az AWS hálózati komponenseire. \cite{latency}
+A MediaPackage v2-es verziója támogatja a Low Latency HLS (LL-HLS) alapú streamelést is, azonban én még a v1-es verziót használtam és a kliensoldali implementációs is meghagytam a hagyományos HLS-en. A fent ismertetett élő stream MediaLive és MediaPackage közti integrációjának manuális tesztelése folyamán körülbelül 10 másodperces késleltetést érzékeltem.
+
+Teljesítmény szempontjából a fenti streamelés késleltetését két dolog befolyásolja jelentősen: a kódolási beállítások (mekkora szegmensekre bontsa, hányféle kimenet legyen, milyen hibaaránnyal érkezik a forrásvideó) és a lejátszó bufferelési logikája. Előbbi befolyásoló tényezőnek a mögöttes forrása a MediaLive maga, ami a kódolást intézi. Mind a MediaLive és a MediaPackage menedzselt szolgáltatások, magunk nem tudunk hatással lenni az azalatti erőforrások eloszlására, annak növelésére, ugyanis automatikusan skálázódnak, ahogy arra a szolgáltatás elköteleződik is.
+
+A késleletetés mérésére a nézők számának növelésével nem tudnánk hasznos teljesítményteszteket készíteni, a live betöltődik a MediaLive-ba, utána a kész szegmensek kiszórása az, ami kihívás a rendszer számára, viszont ezt ahogy fentebb kifejtettem, a MediaPackage automatikusan skálázódással oldja meg, csupán abban az esetben érheti teljesítményromlás a rendszert a MediaPackage hatáskörén kívül, ha az már jelentős terhelést fejtenek ki a felhasználók magára az AWS hálózatára.\cite{latency}
+
+TODO: szerver teljesítménytesztje.

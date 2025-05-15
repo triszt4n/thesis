@@ -121,7 +121,7 @@ Terraformban menedzselt infrastruktúra tipikus életciklusa áll a kódból sz�
 	\label{fig:githuboidc}
 \end{figure}
 
-Hogy az AWS-fiók erőforrásaihoz hozzáférést kaphassanak az egyes munkafolyamatok, azok számára OpenID Connect (OIDC) felállításával terveztem az erre szánt AWS-szerepkör felvételét megvalósítani (\refstruc{fig:githuboidc}). \cite{githuboidc}
+Hogy az AWS-fiók erőforrásaihoz hozzáférést kaphassanak az egyes munkafolyamatok, azok számára OpenID Connect (OIDC) felállításával terveztem az erre szánt AWS-szerepkör felvételét megvalósítani (\refstruc{fig:githuboidc}).\cite{githuboidc}
 
 A szerveralkalmazás egységként való kezelése érdekében és a könnyű telepíthetőségért -- ahogy ezt a nem funkcionális követelmények is megkívánták -- konténerizálni terveztem a Node.js-szerveralkalmazást Docker-konténerbe való komponálással, a buildelési folyamatot Dockerfile-lal kívántam megvalósítani hozzá. GitHub Action került alkalmazásra az buildelt Docker-kép ECR-be való automatizált feltöltésére (\refstruc{fig:ecr}), a React-kód buildelésére és S3-vödörbe való feltöltésére.
 
