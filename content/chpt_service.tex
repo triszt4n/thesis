@@ -1,0 +1,266 @@
+\chapter{Rétegeken átívelő szolgáltatások implementációja}
+
+Ebben a fejezetben kerül kifejtésre az implementációja két szolgáltatásnak az alkalmazásban, amelyek a kliens és szerver rétegén átívelnek: a Signle Sign-On (SSO) integrációja és a videófeltöltés folyamata.
+
+\section{Single Sign-On integrációja}
+
+A videók feltöltésére azok jogosultak, akik a stúdióba be tudnak lépni a \verb|/studio| aloldalon, a bejelentkeztetéshez pedig a kari hallgatói közösségünk által nyílt forráskóddal fejlesztett AuthSCH nevű SSO-rendszert integráltam be a weboldalba, ennek az esszenciális tokenkezelési implementációs részeit a backendre bíztam, a kliensoldal csupán a megfelelő útvonalakra irányításért felel.
+
+A \ref{lst:authCtx}. kódrészlet mutatja be a React-alkalmazásban használt \verb|AuthCtx| nevű kontextust, amely JSON Web Tokeneket (JWT)\cite{jwt} használ a bejelentkeztetés során a felhasználói adatok biztonságos és állapotmentes átpasszolására. A \verb|useMe| nevű hook a backend \verb|/api/auth/me| végpontjáról kéri le a bejelentkezett felhasználó adatait, a végpont mögötti logika csupán annyiból áll, hogy kibontja a kódolt JWT-t és visszaadja abból a releváns profiladatokat. Az \verb|AuthProvider| nevű React-függvénykomponens biztosítja a kontextust az alkalmazás többi részének, a \verb|useAuth| hookon keresztül lehet indítani a többi komponensekben bejelentkezést és kijelentkezést (\verb|login| és \verb|logout| függvények), lehet megtudni, van-e bejelentkezett felhasználó a rendszerben (\verb|authenticated| boolean változó).
+
+\begin{minipage}{0.92\textwidth}
+  \begin{lstlisting}[
+  caption=auth-context.tsx fájl tartalma.,
+  label=lst:authCtx,
+  style=js,
+  basicstyle=\fontsize{10}{12}\ttfamily
+]
+import { createContext, PropsWithChildren } from "react"
+import { useMe } from "./use-me.hook"
+
+type AuthCtxType = {
+  authenticated: boolean
+  isLoading: boolean
+  login: () => void
+  logout: () => void
+}
+export const AuthCtx = createContext<AuthCtxType | undefined>(undefined)
+
+export function AuthProvider({ children }: PropsWithChildren) {
+  const { data, isLoading } = useMe()
+  const onLogin = async () => {
+    window.location.href = import.meta.env.VITE_BACKEND_URL+"/auth/login"
+  }
+  const onLogout = async () => {
+    window.location.href = import.meta.env.VITE_BACKEND_URL+"/auth/logout"
+  }
+  const value = {
+    authenticated: !!data,
+    isLoading,
+    login: onLogin,
+    logout: onLogout,
+  }
+  return <AuthCtx.Provider value={value}>{children}</AuthCtx.Provider>
+}
+export function useAuth() {
+  const context = useContext(AuthContext)
+  if (context === undefined) {
+    throw new Error("useAuth must be used within an AuthProvider")
+  }
+  return context
+}
+\end{lstlisting}
+\end{minipage}
+
+A szerver oldalán egy \verb|AuthModule| névre hallgató NestJS-modul került létrehozásra, amely a \verb|AuthController| és \verb|AuthService| osztályokat tartalmazza. Az \verb|AuthController| osztályban kerülnek definiálásra a forgalmat lehallgató HTTP-végpontok/függvények, míg az \verb|AuthService| osztály elkülöníti a konkrét üzleti logikát. A \ref{lst:authController}. kódrészlet bemutat két fontos HTTP-végpontot, a \verb|/api/auth/login| és a \verb|/api/auth/callback| útvonalakon GET metódusra hallgatóakat sorrendben.
+
+\begin{minipage}{0.92\textwidth}
+  \begin{lstlisting}[
+    caption=Az AuthController osztály fontos függvényei.,
+    label=lst:authController,
+    style=js,
+    basicstyle=\fontsize{10}{12}\ttfamily
+  ]
+@UseGuards(AuthSchGuard)
+@Get("login")
+@ApiFoundResponse({
+  description: "Redirects to the AuthSch login page.",
+})
+login() {}
+
+@Get("callback")
+@UseGuards(AuthSchGuard)
+@ApiFoundResponse({
+  description: "Redirects to the frontend and sets cookie with JWT.",
+})
+@ApiQuery({ name: "code", required: true })
+oauthRedirect(@CurrentUser() user: UserDto, @Res() res: Response): void {
+  const jwt = this.authService.login(user)
+  res.cookie("jwt", jwt, {
+    httpOnly: true,
+    secure: true,
+    domain: process.env.NODE_ENV === "production" ? getHostFromUrl(process.env.FRONTEND_CALLBACK) : undefined,
+    maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
+  })
+  res.redirect(302, process.env.FRONTEND_CALLBACK + "?authenticated=true")
+}
+\end{lstlisting}
+\end{minipage}
+
+A \verb|AuthSchGuard| egy NestJS-dekorátor, amely fel kell kerüljön a \verb|oauthRedirect| és \verb|login| függvényekre. E mögött a dekorátor mögött egy Passport.js-stratégia\cite{passport} van, amely megvalósítja az AuthSCH-val való OAuth-alapú beazonosítási logikát az OAuth-token megújítását, ehhez kell beállítja a kapott OAuth-kliens azonosítóját és titkos kulcsát, ezen értékek forrásáról később a \ref{sec:envvars}. alfejezet beszél.
+
+A \verb|login| függvényt maga az \verb|AuthSchGuard| dekorátor kiváltja, a függvény törzsébe nem kell semmit se írni, a mögöttes logika a felhasználót átirányítja az AuthSCH bejelentkezési oldalára. Az \verb|oauthRedirect| függvény a sikeres bejelentkezés után visszairányítja a felhasználót a frontendre, a kérésben a \verb|jwt| nevű HTTP-only biztonságos sütit beállítja\cite{ietf-oauth-security-topics-13}, amely tartalmazza a bejelentkezett felhasználóra jellemző JWT-t 7 napos lejárati idővel. A \verb|@CurrentUser()| dekorátor a bejelentkezett felhasználó adatait injektálja a megadott \verb|user| paraméterbe (ezt az \verb|AuthSchGuard| oldja meg a háttérben, kiolvassa a kapott autorizációs kódot, amit az AuthSCH-tól kapott). Az \verb|AuthService| osztály \verb|login| függvénye a bejelentkezett AuthSCH-s felhasználó adatait kapja meg, amelyből a JWT-t generálja, ezt a \ref{lst:authService}. kódrészlet mutatja be. A \verb|createOrUpdateUser| függvény a Prisma ORM segítségével megkeresi a felhasználót az adatbázisban, ha nem találja, akkor létrehozza azt, ha megtalálja, akkor frissíti a felhasználó adatait, ez a függvény kerül felhasználásra az \verb|AuthSchGuard| mögötti stratégiában is a bejelentkeztetés validációs ``mellékhatásaként'', hogy a saját adatbázisunkban is létrejöjjön a felhasználó.
+
+\begin{minipage}{0.92\textwidth}
+  \begin{lstlisting}[
+    caption=Az AuthService osztály fontos függvényei.,
+    label=lst:authService,
+    style=js,
+    basicstyle=\fontsize{10}{12}\ttfamily
+  ]
+login(user: object): string {
+  return this.jwtService.sign(user, {
+    secret: this.configService.get<string>("JWT_SECRET"),
+    expiresIn: "7 days",
+  })
+}
+async createOrUpdateUser(prof: AuthSchProfile): Promise<UserDto> {
+  const gravatarUrl = this.getGravatarUrl(prof.email, 200)
+  return this.prisma.user.upsert({
+    where: { authSchId: prof.authSchId },
+    update: {
+      fullName: prof.fullName,
+      firstName: prof.firstName,
+      email: prof.email,
+      imageUrl: gravatarUrl,
+    },
+    create: {
+      authSchId: prof.authSchId,
+      fullName: prof.fullName,
+      firstName: prof.firstName,
+      email: prof.email,
+      imageUrl: gravatarUrl,
+    },
+  })
+}
+\end{lstlisting}
+\end{minipage}
+
+Lefejlesztésre került egy másik \emph{guard} típusú NestJS-dekorátor, ez a \verb|JwtGuard|, amelyet minden más a szerveren található végpontra be kell vezetni, amennyiben az bejelentkezett felhasználót igényel, ez a dekorátor ellenőrzi a \verb|jwt| süti jelenlétét, a felhasználót beazonosítja. Az ilyen függvényekben is ha a paraméterre egy \verb|@CurrentUser()| dekorátort helyezünk, akkor a felhasználó adatai automatikusan be lesznek injektálva abba a paraméterbe.
+
+\section{Videófeltöltés folyamata}
+
+A videófeltöltés lehetőségét helyileg a stúdió aloldalán videóprojekt létrehozása után a szerkesztőmódban találhatjuk meg, a feltöltésre egy ``dropzone'' került implementálásra, amely egy olyan input mező, amely képes lekezelni ``drag\'n\'drop'' (magyarul \emph{fogd és vidd}) módszerrel ráejtett fájlokat, azt felküldeni a szervernek. Ennek kódjából mutat be részletet a \ref{lst:dropzone}. kódrészlet.
+
+\begin{minipage}{0.92\textwidth}
+  \begin{lstlisting}[
+    caption=Részlet a Dropzone függvénykomponensből.,
+    label=lst:dropzone,
+    style=js,
+    basicstyle=\fontsize{10}{12}\ttfamily
+  ]
+export const Dropzone = ({ onChange, ...props }) => {
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
+  // ...
+  const handleDrop = (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    const { files } = e.dataTransfer
+    handleFiles(files)
+  }
+  const handleFileInputChange = (e) => {
+    const { files } = e.target
+    if (files) handleFiles(files)
+  }
+  const handleFiles = (files: FileList) => {
+    onChange(() => Array.from(files))
+    // ...
+  }
+  const handleButtonClick = () => {
+    fileInputRef.current?.click()
+  }
+  return (
+    <Card ... onClick={handleButtonClick}>
+      <CardContent ... onDragOver={handleDragOver} onDrop={handleDrop}>
+        <div className="...">
+          <span className="font-medium">Húzz egy fájlt ide</span>
+          <Button variant="ghost" size="sm" className="...">
+            vagy kattints ide
+          </Button>
+          <input ref={fileInputRef} type="file" onChange={handleFileInputChange} className="hidden" multiple />
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+\end{lstlisting}
+\end{minipage}
+
+A \verb|Dropzone| nevű React-függvénykomponens maga az input mező egy rejtett HTML-elem, amely a \verb|fileInputRef| referencián keresztül érhető el. A fájlok feltöltésére a \verb|handleFiles| függvény felelős, amely a kiválasztott fájlokat egy tömbbé alakítja, és kihív a paraméterben átadott \verb|onChange| függvényre a szülőkomponensben. A konkrét szerver felé kommunikálást a szülőkomponens végzi.
+
+Feltöltés végeztével a szerkesztői felületen megjelenik a ``Videó megtekintése'' gomb, amelyre kattintva elnavigál a weboldal egy új aloldalra, ahol a videólejátszó is implementálásra került. A videólejátszó komponens a \verb|VideoPlayer| nevű React-függvénykomponens, amely a \verb|hls.js| nevű könyvtárat használja a stream letöltés kezelésére. A \ref{lst:videoPlayer}. kódrészlet mutatja be a könyvtár használatát, a komponens implementációját.
+
+\begin{minipage}{0.92\textwidth}
+  \begin{lstlisting}[
+    caption=A VideoPlayer függvénykomponens kódja.,
+    label=lst:videoPlayer,
+    style=js,
+    basicstyle=\fontsize{10}{12}\ttfamily
+  ]
+import Hls from "hls.js"
+import { useEffect } from "react"
+
+export const VideoPlayer = ({ src, width, height }) => {
+  const ref = React.useRef<HTMLVideoElement>(null)
+  useEffect(() => {
+    if (ref.current && Hls.isSupported()) {
+      const hls = new Hls()
+      hls.loadSource(src)
+      hls.attachMedia(ref.current)
+    }
+  }, [src])
+  return (
+    <video width={width} height={height} controls ref={ref}>
+      <source src={src} type="video/mp4" />
+      Your browser does not support the video tag.
+    </video>
+  )
+}
+\end{lstlisting}
+\end{minipage}
+
+A szerveroldalon a feltöltésre kerülő nyers videók egy arra kijelölt S3-vödörbe kerülnek továbbításra. A korábban ismertetett (\ref{sec:nodejs}. alfejezet) videókért felelős NestJS-modulbeli \verb|VideoController| és \verb|VideoService| osztályokból emeli ki rendre a \ref{lst:videoController}. kódrészlet és a \ref{lst:videoService} kódrészlet a fontosabb részeket.
+
+\begin{minipage}{0.92\textwidth}
+  \begin{lstlisting}[
+    caption=Videófeltöltés kezelése a VideoController osztályban.,
+    label=lst:videoController,
+    style=js,
+    basicstyle=\fontsize{10}{12}\ttfamily
+  ]
+@Post(":id/upload")
+@UseGuards(JwtGuard)
+@UseInterceptors(FileInterceptor("file"))
+async upload(
+  @Param("id") id: string,
+  @UploadedFile(new ParseFilePipe()) file: Express.Multer.File
+) {
+  const { originalname, buffer } = file
+  const res = await this.videoService.upload(id, originalname, buffer)
+  return await this.videoService.afterUpload(id, res.fileName)
+}
+\end{lstlisting}
+\end{minipage}
+
+A feltöltéshez szükséges fájlok a kliensoldalon kerülnek kiválasztásra, és a POST metódusú \verb|/api/videos/:id/upload| végponton keresztül kerülnek feltöltésre. Ezt a végpontot hallgatja le a \verb|VideoController| osztálybéli \verb|upload| függvény is. A függvény dekorátorai közül a \verb|@Post| jelöli azt, amiképp hallgat a kérésekre (POST metódussal és a jelölt útvonalon). A \verb|@UseGuards| dekorátor az autentikáció szükségességét biztosítja a kérések végbemeneteléhez, amelyet a mi esetünkben a \verb|JwtGuard| osztály valósít meg. A \verb|@UseInterceptors| dekorátor pedig egy interceptort állít be a függvény elé, a fájlok feltöltését segíti elő, amelyet a \verb|FileInterceptor| osztály valósít meg. Ez az osztály a NestJS alatt működő Express keretrendszerben működő \emph{Multer} nevű Node.js-middleware-t hasznosítja, amellyel így tehát képes az osztály mögötti logika a HTTP-alapú bájtfolyamot hatékonyan feldolgozni/parse-olni, és elrejteni előlünk a sok-sok kihívását egy fájlfeltöltésnek. A függvény paramétereiben a \verb|file| paraméter a \verb|@UploadedFile| dekorátoron keresztül válik a feltöltött fájl reprezentációjává, típusa is a \verb|File| interfész lesz.
+
+A \verb|VideoService|-ben működő \verb|upload| függvény felé lesz a kapott fájl bufferje továbbítva, végül a service függvény eredményéből született fájlnévvel kerül az adatbázisba is lementésre az entitásként a videó is a \verb|afterUpload| függvény által.
+
+A \verb|VideoService| az AWS SDK S3 API-ját használja a fájlok vödörbe való feltöltésére. Ehhez létrehoztam tagváltozóként a \verb|s3Client|-et. A \verb|upload| függvény először átalakítja a fájlnevet, megtartja a kiterjesztést, viszont a dátumot szerkeszti bele a konkrét névbe. Majdpedig készít egy \verb|PutObjectCommand| típusú objektumot, amellyel a megfelelő helyre és névvel kerül feltöltésre az \verb|s3Client|-en keresztül a fájl.
+
+\begin{minipage}{0.92\textwidth}
+  \begin{lstlisting}[
+    caption=Videófeltöltés függvénye a VideoService osztályban.,
+    label=lst:videoService,
+    style=js,
+    basicstyle=\fontsize{10}{12}\ttfamily
+  ]
+private readonly s3Client = new S3Client({
+  region: this.configService.getOrThrow("AWS_S3_REGION"),
+})
+async upload(id: string, fileName: string, file: Buffer) {
+  const ext = fileName.split(".").slice(-1)[0]
+  const baseName = new Date()
+    .toISOString().slice(0, 19).replaceAll(":", "-")
+
+  const response = await this.s3Client.send(
+    new PutObjectCommand({
+      Bucket: this.configService.getOrThrow("AWS_S3_UPLOADED_BUCKET"),
+      Key: `${id}/${baseName}.${ext}`,
+      Body: file,
+    })
+  )
+  return { ...response, fileName: `${baseName}.${ext}` }
+}
+\end{lstlisting}
+\end{minipage}

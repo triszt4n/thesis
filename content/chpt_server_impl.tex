@@ -38,7 +38,7 @@ Léteznek különféle hálózati erőforrástípusok, hogy privát alhálózatb
 
 A hálózat építése tégláról téglára került kivitelezésre, a fejlesztési/tervezési fázisban ezért érdemesnek tartottam a tesztelés során \emph{``jumpbox''} jelleggel bevezetni egy EC2-példányt, amely a publikus alhálózatban helyezkedik el. Viszont az elérése nem kívántam jelszavakat, SSH-kulcsokat kezelni, ezért az AWS Systems Manager (SSM) Session Manager szolgáltatását használtam, amely lehetővé tette, hogy a webes konzolon keresztül SSH-kapcsolatot létesítsek az EC2-példánnyal anélkül, hogy közvetlenül elérné azt. Az EC2-es példány létrehozása után egy ágenset kellett volna telepítsek, amely erre felkészíti magát a virtuális gépet, azonban ezt a telepítési folyamatot is automatizáltam a Systems Manager Host Management szolgáltatásával, amely lehetővé teszi az EC2-példányok központi kezelését. A jumpbox segítségével tudtam pingelgetni a hálózati eszközök interfészeit, illetve a Security Groupok beállításait is tesztelni, és akár az RDS-adatbázison is futtatni egyszerű lekéréseket, sémamigrációkat.
 
-\section{A Node.js-alkalmazás fejlesztése}
+\section{A Node.js-alkalmazás fejlesztése}\label{sec:nodejs}
 
 A NestJS keretrendszerben írt Node.js-alkalmazások modulokra bomlanak, az egyes modulok \emph{controller} rétegre és \emph{service} rétegre válnak ketté, a javaslat, hogy az előbbi réteg osztályaiban a forgalomirányítást valósítsuk meg, a későbbiben pedig a konkrét szolgáltatásszintű üzleti logikát, a számításokat, adattisztítást, adatelérést valósítsuk meg. A modulok implementációjában az egyes \emph{service} és \emph{controller} típusú osztályok példányainak beinjektálását, illetve azok életciklusáról való gondoskodást a NestJS által biztosított Dependency Injection (DI) rendszer valósítja meg.
 
@@ -72,7 +72,7 @@ A \verb|CrewMembership| entitáshoz tartozó tábla a \verb|Vod| és a \verb|Use
 
 Az alkalmazásnak korábbi alfejezetekben már kiderült, hogy vannak külső függőségei. Ezen függőségekhez való hozzáféréshez a környezeti változók használata elengedhetetlen. A ECS-ben futó konténer környezeti változóinak beállítására az ECS is ad lehetőséget a \ref{lst:mainApi}. kódrészlet mutatja be a Terraform-kód egy részletét, amely átpasszolja az alkalmazás számára a következő fontos paramétereket.
 
-Az AuthSCH SSO-ban felvett OAuth-kliensünk azonosítóját és titkos kulcsát a \verb|AUTHSCH_CLIENT_ID| és \verb|AUTHSCH_CLIENT_SECRET| környezeti változók tárolják, ezek értékeit ahogy a kódból is látható egy-egy SSM Parameter Store-ból szerzi meg a CI/CD-folyamat futtatása során a Terraform-kliensünk (értsd: a referált erőforrás elején \verb|data| kulcsszó jelöli, hogy \emph{data source}-ként éri kéri le a Terraform az AWS CDK-n keresztül az értékét). Ezen Param Store kulcs-érték párokhoz az értéket az AuthSCH saját oldalán szereztem meg \url{auth.sch.bme.hu} oldalon található webes felületén, ahol korábban már megszerzett SCHAcc-fiókomba való belépés után új OAuth-kliens beregisztrálása után tudtam magamnak generálni a kívánt értékeket (ID és client secret).
+Az AuthSCH SSO-ban felvett OAuth-kliensünk\cite{ietf-oauth-security-topics-13} azonosítóját és titkos kulcsát a \verb|AUTHSCH_CLIENT_ID| és \verb|AUTHSCH_CLIENT_SECRET| környezeti változók tárolják, ezek értékeit ahogy a kódból is látható egy-egy SSM Parameter Store-ból szerzi meg a CI/CD-folyamat futtatása során a Terraform-kliensünk (értsd: a referált erőforrás elején \verb|data| kulcsszó jelöli, hogy \emph{data source}-ként éri kéri le a Terraform az AWS CDK-n keresztül az értékét). Ezen Param Store kulcs-érték párokhoz az értéket az AuthSCH saját oldalán szereztem meg \url{auth.sch.bme.hu} oldalon található webes felületén, ahol korábban már megszerzett SCHAcc-fiókomba való belépés után új OAuth-kliens beregisztrálása után tudtam magamnak generálni a kívánt értékeket (ID és client secret).
 
 Egy felhasználónevet és jelszót (\verb|POSTGRES_USER| és \verb|POSTGRES_PASSWORD|) is meg kell tudjuk adni környezeti változón keresztül az alkalmazásunknak, amellyel autentikál az adatbázisba, ezek értékét is SSM Param Store-okba tettem bele, viszont a felhasználónevet már magam találtam ki, a jelszót pedig magam generáltam kézzel.
 
@@ -98,64 +98,6 @@ task_environment = {
   JWT_SECRET = data.aws_ssm_parameter.these["api-jwt-secret"].value
   AWS_S3_REGION = var.region
   AWS_S3_UPLOADED_BUCKET = "streamzen-uploaded-videos-${var.environment}-bucket"
-}
-\end{lstlisting}
-\end{minipage}
-
-\subsection{A videófeltöltés üzleti logikája}
-
-A szerveroldalon kialakításra kerülő konkrét üzleti logikai folyamatok közül a feltöltésre kerülő nyers videók S3-vödörbe való továbbítása az egyik legérdekesebb. A fentebb ismertetett VideoController és VideoService osztályokból emeli ki rendre a \ref{lst:videoController}. kódrészlet és a \ref{lst:videoService} kódrészlet a fontosabb részeket.
-
-\begin{minipage}{0.92\textwidth}
-  \begin{lstlisting}[
-    caption=Videófeltöltés kezelése a VideoController osztályban.,
-    label=lst:videoController,
-    style=js,
-    basicstyle=\fontsize{10}{12}\ttfamily
-  ]
-@Post(":id/upload")
-@UseGuards(JwtGuard)
-@UseInterceptors(FileInterceptor("file"))
-async upload(
-  @Param("id") id: string,
-  @UploadedFile(new ParseFilePipe()) file: Express.Multer.File
-) {
-  const { originalname, buffer } = file
-  const res = await this.videoService.upload(id, originalname, buffer)
-  return await this.videoService.afterUpload(id, res.fileName)
-}
-\end{lstlisting}
-\end{minipage}
-
-A feltöltéshez szükséges fájlok a kliensoldalon kerülnek kiválasztásra, és a POST metódusú \verb|/api/videos/:id/upload| végponton keresztül kerülnek feltöltésre. Ezt a végpontot hallgatja le a \verb|VideoController| osztálybéli \verb|upload| függvény is. A függvény dekorátorai közül a \verb|@Post| jelöli azt, amiképp hallgat a kérésekre (POST metódussal és a jelölt útvonalon). A \verb|@UseGuards| dekorátor az autentikáció szükségességét biztosítja a kérések végbemeneteléhez, amelyet a mi esetünkben a \verb|JwtGuard| osztály valósít meg. A \verb|@UseInterceptors| dekorátor pedig egy interceptort állít be a függvény elé, a fájlok feltöltését segíti elő, amelyet a \verb|FileInterceptor| osztály valósít meg. Ez az osztály a NestJS alatt működő Express keretrendszerben működő \emph{Multer} nevű Node.js-middleware-t hasznosítja, amellyel így tehát képes az osztály mögötti logika a HTTP-alapú bájtfolyamot hatékonyan feldolgozni/parse-olni, és elrejteni előlünk a sok-sok kihívását egy fájlfeltöltésnek. A függvény paramétereiben a \verb|file| paraméter a \verb|@UploadedFile| dekorátoron keresztül válik a feltöltött fájl reprezentációjává, típusa is a \verb|File| interfész lesz.
-
-A \verb|VideoService|-ben működő \verb|upload| függvény felé lesz a kapott fájl bufferje továbbítva, végül a service függvény eredményéből született fájlnévvel kerül az adatbázisba is lementésre az entitásként a videó is a \verb|afterUpload| függvény által.
-
-A \verb|VideoService| az AWS SDK S3 API-ját használja a fájlok vödörbe való feltöltésére. Ehhez létrehoztam tagváltozóként a \verb|s3Client|-et. A \verb|upload| függvény először átalakítja a fájlnevet, megtartja a kiterjesztést, viszont a dátumot szerkeszti bele a konkrét névbe. Majdpedig készít egy \verb|PutObjectCommand| típusú objektumot, amellyel a megfelelő helyre és névvel kerül feltöltésre az \verb|s3Client|-en keresztül a fájl.
-
-\begin{minipage}{0.92\textwidth}
-  \begin{lstlisting}[
-    caption=Videófeltöltés függvénye a VideoService osztályban.,
-    label=lst:videoService,
-    style=js,
-    basicstyle=\fontsize{10}{12}\ttfamily
-  ]
-private readonly s3Client = new S3Client({
-  region: this.configService.getOrThrow("AWS_S3_REGION"),
-})
-async upload(id: string, fileName: string, file: Buffer) {
-  const ext = fileName.split(".").slice(-1)[0]
-  const baseName = new Date()
-    .toISOString().slice(0, 19).replaceAll(":", "-")
-
-  const response = await this.s3Client.send(
-    new PutObjectCommand({
-      Bucket: this.configService.getOrThrow("AWS_S3_UPLOADED_BUCKET"),
-      Key: `${id}/${baseName}.${ext}`,
-      Body: file,
-    })
-  )
-  return { ...response, fileName: `${baseName}.${ext}` }
 }
 \end{lstlisting}
 \end{minipage}
@@ -415,7 +357,7 @@ export const handler = async (event, context) => {
 \end{lstlisting}
 \end{minipage}
 
-\begin{figure}[]
+\begin{figure}
   \centering
   \includegraphics[width=150mm, keepaspectratio]{figures/processing.png}
   \caption{Képernyőkép egy videóprojekt szerkesztői nézetében.}
@@ -492,31 +434,3 @@ A MediaLive-csatorna indítása után lehetséges az input URL-re felcsatlakozva
   \caption{Képernyőkép az OBS stream beállításairól.}
   \label{fig:obs}
 \end{figure}
-
-\chapter{Elkészült funkciók tesztelése}
-
-A weboldalamon a \verb|/live| útvonalon megtekintettem az előzőleg (\ref{sec:mediaLive}. alfejezet) beindított streamet (\refstruc{fig:waterfall1}). Egy próbálkozást mutat be a \refstruc{fig:waterfall2} képernyőkép, amely a böngészőben a HTTP-kérések vízesését\cite{waterfall} mutatja be.
-
-\begin{figure}[h]
-  \centering
-  \includegraphics[width=100mm, keepaspectratio]{figures/waterfall1.png}
-  \caption{A /live útvonalon látható aloldal.}
-  \label{fig:waterfall1}
-\end{figure}
-
-\begin{figure}[h]
-  \centering
-  \includegraphics[width=100mm, keepaspectratio]{figures/waterfall2.png}
-  \caption{HTTP-kérések vízesése a /live oldalon.}
-  \label{fig:waterfall2}
-\end{figure}
-
-Az SPA-alkalmazás a környezeti változóból beállított HLS-végponton kéri le először a \verb|.m3u8| playlistet, amelyből megtudja, mi lesz a következő szegmens, amelyet le kell töltse. Az ábrából látszik, hogy az alapértelmezett 6 másodperces részekre vannak felbontva a szegmensek. Nagyjából 6--7 MB-os szegmensek érkeznek a böngészőbe (már tömörítve a CDN-en keresztül).
-
-A MediaPackage v2-es verziója támogatja a Low Latency HLS (LL-HLS) alapú streamelést is, azonban én még a v1-es verziót használtam és a kliensoldali implementációs is meghagytam a hagyományos HLS-en. A fent ismertetett élő stream MediaLive és MediaPackage közti integrációjának manuális tesztelése folyamán körülbelül 10 másodperces késleltetést érzékeltem.
-
-Teljesítmény szempontjából a fenti streamelés késleltetését két dolog befolyásolja jelentősen: a kódolási beállítások (mekkora szegmensekre bontsa, hányféle kimenet legyen, milyen hibaaránnyal érkezik a forrásvideó) és a lejátszó bufferelési logikája. Előbbi befolyásoló tényezőnek a mögöttes forrása a MediaLive maga, ami a kódolást intézi. Mind a MediaLive és a MediaPackage menedzselt szolgáltatások, magunk nem tudunk hatással lenni az azalatti erőforrások eloszlására, annak növelésére, ugyanis automatikusan skálázódnak, ahogy arra a szolgáltatás elköteleződik is.
-
-A késleletetés mérésére a nézők számának növelésével nem tudnánk hasznos teljesítményteszteket készíteni, a live betöltődik a MediaLive-ba, utána a kész szegmensek kiszórása az, ami kihívás a rendszer számára, viszont ezt ahogy fentebb kifejtettem, a MediaPackage automatikusan skálázódással oldja meg, csupán abban az esetben érheti teljesítményromlás a rendszert a MediaPackage hatáskörén kívül, ha az már jelentős terhelést fejtenek ki a felhasználók magára az AWS hálózatára.\cite{latency}
-
-TODO: szerver teljesítménytesztje.
