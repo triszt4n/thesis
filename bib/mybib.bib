@@ -11,7 +11,7 @@
   year    = {2011},
   month   = {02},
   pages   = {133-144},
-  title   = {Dynamic adaptive streaming over HTTP: Standards and design principles},
+  title   = {Dynamic adaptive streaming over {HTTP}: Standards and design principles},
   journal = {IEEE International Conference on Multimedia Systems},
   doi     = {10.1145/1943552.1943572},
   note    = {\url{https://dl.acm.org/doi/10.1145/1943552.1943572}}
@@ -65,7 +65,7 @@
 @techreport{Ivs,
   author      = {Whitehorn, Christer},
   institution = {Amazon Web Services},
-  title       = {Choosing the right AWS live streaming solution for your use case},
+  title       = {Choosing the right {AWS} live streaming solution for your use case},
   note        = {\url{https://aws.amazon.com/blogs/media/awse-choosing-aws-live-streaming-solution-for-use-case/}},
   year        = {2021}
 }
@@ -73,7 +73,7 @@
 @techreport{Mediastore,
   author      = {Gehred, Dan},
   institution = {Amazon Web Services},
-  title       = {Support for AWS Elemental MediaStore ending soon},
+  title       = {Support for {AWS} {Elemental} {MediaStore} ending soon},
   note        = {\url{https://aws.amazon.com/blogs/media/support-for-aws-elemental-mediastore-ending-soon/}},
   year        = {2024}
 }
@@ -81,7 +81,7 @@
 @techreport{Elemental,
   author      = {Christie, Andra and Arjarapu, Shyam and Tallury, Ravi},
   institution = {Amazon Web Services},
-  title       = {Choose the right AWS video service for your use case},
+  title       = {Choose the right {AWS} video service for your use case},
   note        = {\url{https://aws.amazon.com/blogs/iot/choose-the-right-aws-video-service-for-your-use-case/}},
   year        = {2021}
 }
@@ -89,7 +89,7 @@
 @techreport{Docker,
   author      = {Ostrowski, Savannah},
   institution = {Docker Inc.},
-  title       = {containerd vs. Docker: Understanding Their Relationship and How They Work Together},
+  title       = {containerd vs. {Docker}: Understanding Their Relationship and How They Work Together},
   note        = {\url{https://www.docker.com/blog/containerd-vs-docker/}},
   year        = {2024}
 }
@@ -104,7 +104,7 @@
 @techreport{githuboidc,
   author      = {Rowe, David},
   institution = {Amazon Web Services},
-  title       = {Use IAM roles to connect GitHub Actions to actions in AWS},
+  title       = {Use {IAM} roles to connect {GitHub Actions} to actions in {AWS}},
   year        = {2023},
   note        = {\url{https://aws.amazon.com/blogs/security/use-iam-roles-to-connect-github-actions-to-actions-in-aws/}}
 }
@@ -129,7 +129,7 @@
 @techreport{oac,
   author      = {Lee, Ben and Butail, Anuj and Kushnirov, Igor},
   institution = {Amazon Web Services},
-  title       = {Amazon CloudFront introduces Origin Access Control (OAC)},
+  title       = {Amazon {CloudFront} introduces {Origin Access Control} ({OAC})},
   year        = {2022},
   note        = {\url{https://aws.amazon.com/blogs/networking-and-content-delivery/amazon-cloudfront-introduces-origin-access-control-oac/}}
 }
@@ -211,7 +211,7 @@
 @techreport{k8s,
   author      = {Slingerland, Cody},
   institution = {CloudZero},
-  title       = {ECS Vs. Kubernetes: A Detailed Guide To Container Solutions},
+  title       = {{ECS} Vs. {Kubernetes}: A Detailed Guide To Container Solutions},
   year        = {2024},
   note        = {\url{https://www.cloudzero.com/blog/ecs-vs-kubernetes/}}
 }
@@ -227,14 +227,14 @@
 @misc{empQuotas,
   author       = {{Amazon Web Services}},
   howpublished = {\url{https://docs.aws.amazon.com/mediapackage/latest/ug/live-quotas.html}},
-  title        = {Live content quotas -- AWS Elemental MediaPackage User Guide},
+  title        = {Live content quotas -- {AWS} {Elemental} {MediaPackage} User Guide},
   note         = {[Hozzáférés dátuma: 2025-05-15]}
 }
 
 @misc{s3perf,
   author       = {{Amazon Web Services}},
   howpublished = {\url{https://docs.aws.amazon.com/AmazonS3/latest/userguide/optimizing-performance.html}},
-  title        = {Best practices design patterns: optimizing Amazon S3 performance -- Amazon Simple Storage Service User Guide},
+  title        = {Best practices design patterns: optimizing {Amazon S3} performance -- Amazon Simple Storage Service User Guide},
   note         = {[Hozzáférés dátuma: 2025-05-15]}
 }
 
@@ -260,4 +260,20 @@
     month =     jul,
     day =       8,
     abstract =  {This document describes best current security practice for OAuth 2.0. It updates and extends the OAuth 2.0 Security Threat Model to incorporate practical experiences gathered since OAuth 2.0 was published and covers new threats relevant due to the broader application of OAuth 2.0.},
+}
+
+@techreport{ietf-moq-transport-11,
+    number =    {draft-ietf-moq-transport-11},
+    type =      {Internet-Draft},
+    institution =   {Internet Engineering Task Force},
+    publisher = {Internet Engineering Task Force},
+    note =      {Work in Progress},
+    url =       {https://datatracker.ietf.org/doc/draft-ietf-moq-transport/11/},
+    author =    {Suhas Nandakumar and Victor Vasiliev and Ian Swett and Alan Frindell},
+    title =     {{Media over QUIC Transport}},
+    pagetotal = 85,
+    year =      2025,
+    month =     apr,
+    day =       28,
+    abstract =  {This document defines the core behavior for Media over QUIC Transport (MOQT), a media transport protocol designed to operate over QUIC and WebTransport, which have similar functionality. MOQT allows a producer of media to publish data and have it consumed via subscription by a multiplicity of endpoints. It supports intermediate content distribution networks and is designed for high scale and low latency distribution.},
 }

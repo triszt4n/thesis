@@ -1,12 +1,12 @@
 \chapter{Rétegeken átívelő szolgáltatások implementációja}
 
-Ebben a fejezetben kerül kifejtésre az implementációja két szolgáltatásnak az alkalmazásban, amelyek a kliens és szerver rétegén átívelnek: a Signle Sign-On (SSO) integrációja és a videófeltöltés folyamata.
+Ebben a fejezetben kerül kifejtésre az implementációja két szolgáltatásnak az alkalmazásban, amelyek a kliens és szerver rétegén átívelnek: a Single Sign-On (SSO) integrációja és a videófeltöltés folyamata.
 
 \section{Single Sign-On integrációja}
 
 A videók feltöltésére azok jogosultak, akik a stúdióba be tudnak lépni a \verb|/studio| aloldalon, a bejelentkeztetéshez pedig a kari hallgatói közösségünk által nyílt forráskóddal fejlesztett AuthSCH nevű SSO-rendszert integráltam be a weboldalba, ennek az esszenciális tokenkezelési implementációs részeit a backendre bíztam, a kliensoldal csupán a megfelelő útvonalakra irányításért felel.
 
-A \ref{lst:authCtx}. kódrészlet mutatja be a React-alkalmazásban használt \verb|AuthCtx| nevű kontextust, amely JSON Web Tokeneket (JWT)\cite{jwt} használ a bejelentkeztetés során a felhasználói adatok biztonságos és állapotmentes átpasszolására. A \verb|useMe| nevű hook a backend \verb|/api/auth/me| végpontjáról kéri le a bejelentkezett felhasználó adatait, a végpont mögötti logika csupán annyiból áll, hogy kibontja a kódolt JWT-t és visszaadja abból a releváns profiladatokat. Az \verb|AuthProvider| nevű React-függvénykomponens biztosítja a kontextust az alkalmazás többi részének, a \verb|useAuth| hookon keresztül lehet indítani a többi komponensekben bejelentkezést és kijelentkezést (\verb|login| és \verb|logout| függvények), lehet megtudni, van-e bejelentkezett felhasználó a rendszerben (\verb|authenticated| boolean változó).
+\Az+\ref{lst:authCtx}. kódrészlet mutatja be a React-alkalmazásban használt \verb|AuthCtx| nevű kontextust, amely JSON Web Tokeneket (JWT)\cite{jwt} használ a bejelentkeztetés során a felhasználói adatok biztonságos és állapotmentes átpasszolására. A \verb|useMe| nevű hook a backend \verb|/api/auth/me| végpontjáról kéri le a bejelentkezett felhasználó adatait, a végpont mögötti logika csupán annyiból áll, hogy kibontja a kódolt JWT-t és visszaadja abból a releváns profiladatokat. Az \verb|AuthProvider| nevű React-függvénykomponens biztosítja a kontextust az alkalmazás többi részének, a \verb|useAuth| hookon keresztül lehet indítani a többi komponensekben bejelentkezést és kijelentkezést (\verb|login| és \verb|logout| függvények), lehet megtudni, van-e bejelentkezett felhasználó a rendszerben (\verb|authenticated| boolean változó).
 
 \begin{minipage}{0.92\textwidth}
   \begin{lstlisting}[
@@ -52,7 +52,7 @@ export function useAuth() {
 \end{lstlisting}
 \end{minipage}
 
-A szerver oldalán egy \verb|AuthModule| névre hallgató NestJS-modul került létrehozásra, amely a \verb|AuthController| és \verb|AuthService| osztályokat tartalmazza. Az \verb|AuthController| osztályban kerülnek definiálásra a forgalmat lehallgató HTTP-végpontok/függvények, míg az \verb|AuthService| osztály elkülöníti a konkrét üzleti logikát. A \ref{lst:authController}. kódrészlet bemutat két fontos HTTP-végpontot, a \verb|/api/auth/login| és a \verb|/api/auth/callback| útvonalakon GET metódusra hallgatóakat sorrendben.
+A szerver oldalán egy \verb|AuthModule| névre hallgató NestJS-modul került létrehozásra, amely a \verb|AuthController| és \verb|AuthService| osztályokat tartalmazza. Az \verb|AuthController| osztályban kerülnek definiálásra a forgalmat lehallgató HTTP-végpontok/függvények, míg az \verb|AuthService| osztály elkülöníti a konkrét üzleti logikát. \Az+\ref{lst:authController}. kódrészlet bemutat két fontos HTTP-végpontot, a \verb|/api/auth/login| és a \verb|/api/auth/callback| útvonalakon GET metódusra hallgatókat sorrendben.
 
 \begin{minipage}{0.92\textwidth}
   \begin{lstlisting}[
@@ -87,9 +87,9 @@ oauthRedirect(@CurrentUser() user: UserDto, @Res() res: Response): void {
 \end{lstlisting}
 \end{minipage}
 
-A \verb|AuthSchGuard| egy NestJS-dekorátor, amely fel kell kerüljön a \verb|oauthRedirect| és \verb|login| függvényekre. E mögött a dekorátor mögött egy Passport.js-stratégia\cite{passport} van, amely megvalósítja az AuthSCH-val való OAuth-alapú beazonosítási logikát az OAuth-token megújítását, ehhez kell beállítja a kapott OAuth-kliens azonosítóját és titkos kulcsát, ezen értékek forrásáról később a \ref{sec:envvars}. alfejezet beszél.
+A \verb|AuthSchGuard| egy NestJS-dekorátor, amely fel kell kerüljön a \verb|oauthRedirect| és \verb|login| függvényekre. E mögött a dekorátor mögött egy Passport.js-stratégia\cite{passport} van, amely megvalósítja az AuthSCH-val való OAuth-alapú beazonosítási logikát az OAuth-token megújítását, ehhez kell beállítja a kapott OAuth-kliens azonosítóját és titkos kulcsát, ezen értékek forrásáról később \az+\ref{sec:envvars}. alfejezet beszél.
 
-A \verb|login| függvényt maga az \verb|AuthSchGuard| dekorátor kiváltja, a függvény törzsébe nem kell semmit se írni, a mögöttes logika a felhasználót átirányítja az AuthSCH bejelentkezési oldalára. Az \verb|oauthRedirect| függvény a sikeres bejelentkezés után visszairányítja a felhasználót a frontendre, a kérésben a \verb|jwt| nevű HTTP-only biztonságos sütit beállítja\cite{ietf-oauth-security-topics-13}, amely tartalmazza a bejelentkezett felhasználóra jellemző JWT-t 7 napos lejárati idővel. A \verb|@CurrentUser()| dekorátor a bejelentkezett felhasználó adatait injektálja a megadott \verb|user| paraméterbe (ezt az \verb|AuthSchGuard| oldja meg a háttérben, kiolvassa a kapott autorizációs kódot, amit az AuthSCH-tól kapott). Az \verb|AuthService| osztály \verb|login| függvénye a bejelentkezett AuthSCH-s felhasználó adatait kapja meg, amelyből a JWT-t generálja, ezt a \ref{lst:authService}. kódrészlet mutatja be. A \verb|createOrUpdateUser| függvény a Prisma ORM segítségével megkeresi a felhasználót az adatbázisban, ha nem találja, akkor létrehozza azt, ha megtalálja, akkor frissíti a felhasználó adatait, ez a függvény kerül felhasználásra az \verb|AuthSchGuard| mögötti stratégiában is a bejelentkeztetés validációs ``mellékhatásaként'', hogy a saját adatbázisunkban is létrejöjjön a felhasználó.
+A \verb|login| függvényt maga az \verb|AuthSchGuard| dekorátor kiváltja, a függvény törzsébe nem kell semmit se írni, a mögöttes logika a felhasználót átirányítja az AuthSCH bejelentkezési oldalára. Az \verb|oauthRedirect| függvény a sikeres bejelentkezés után visszairányítja a~felhasználót a frontendre, a kérésben a \verb|jwt| nevű HTTP-only biztonságos sütit beállítja\cite{ietf-oauth-security-topics-13}, amely tartalmazza a bejelentkezett felhasználóra jellemző JWT-t 7 napos lejárati idővel. A \verb|@CurrentUser()| dekorátor a bejelentkezett felhasználó adatait injektálja a megadott \verb|user| paraméterbe (ezt az \verb|AuthSchGuard| oldja meg a háttérben, kiolvassa a~kapott autorizációs kódot, amit az AuthSCH-tól kapott). Az \verb|AuthService| osztály \verb|login| függvénye a bejelentkezett AuthSCH-s felhasználó adatait kapja meg, amelyből a JWT-t generálja, ezt \az+\ref{lst:authService}. kódrészlet mutatja be. A \verb|createOrUpdateUser| függvény a Prisma ORM segítségével megkeresi a felhasználót az adatbázisban, ha nem találja, akkor létrehozza azt, ha megtalálja, akkor frissíti a felhasználó adatait, ez a függvény kerül felhasználásra az \verb|AuthSchGuard| mögötti stratégiában is a bejelentkeztetés validációs ``mellékhatásaként'', hogy a saját adatbázisunkban is létrejöjjön a felhasználó.
 
 \begin{minipage}{0.92\textwidth}
   \begin{lstlisting}[
@@ -126,11 +126,11 @@ async createOrUpdateUser(prof: AuthSchProfile): Promise<UserDto> {
 \end{lstlisting}
 \end{minipage}
 
-Lefejlesztésre került egy másik \emph{guard} típusú NestJS-dekorátor, ez a \verb|JwtGuard|, amelyet minden más a szerveren található végpontra be kell vezetni, amennyiben az bejelentkezett felhasználót igényel, ez a dekorátor ellenőrzi a \verb|jwt| süti jelenlétét, a felhasználót beazonosítja. Az ilyen függvényekben is ha a paraméterre egy \verb|@CurrentUser()| dekorátort helyezünk, akkor a felhasználó adatai automatikusan be lesznek injektálva abba a paraméterbe.
+Lefejlesztésre került egy másik \emph{guard} típusú NestJS-dekorátor, ez a \verb|JwtGuard|, amelyet minden más a szerveren található végpontra be kell vezetni, amennyiben az bejelentkezett felhasználót igényel, ez a dekorátor ellenőrzi a \verb|jwt| süti jelenlétét, a felhasználót beazonosítja. Az ilyen függvényekben is, ha a paraméterre egy \verb|@CurrentUser()| dekorátort helyezünk, akkor a felhasználó adatai automatikusan be lesznek injektálva abba a~paraméterbe.
 
 \section{Videófeltöltés folyamata}
 
-A videófeltöltés lehetőségét helyileg a stúdió aloldalán videóprojekt létrehozása után a szerkesztőmódban találhatjuk meg, a feltöltésre egy ``dropzone'' került implementálásra, amely egy olyan input mező, amely képes lekezelni ``drag\'n\'drop'' (magyarul \emph{fogd és vidd}) módszerrel ráejtett fájlokat, azt felküldeni a szervernek. Ennek kódjából mutat be részletet a \ref{lst:dropzone}. kódrészlet.
+A videófeltöltés lehetőségét helyileg a stúdió aloldalán videóprojekt létrehozása után a~szerkesztőmódban találhatjuk meg, a feltöltésre egy ``dropzone'' került implementálásra, amely egy olyan input mező, amely képes lekezelni ``drag\'n\'drop'' (magyarul \emph{fogd és vidd}) módszerrel ráejtett fájlokat, azt felküldeni a szervernek. Ennek kódjából mutat be részletet \az+\ref{lst:dropzone}. kódrészlet.
 
 \begin{minipage}{0.92\textwidth}
   \begin{lstlisting}[
@@ -176,9 +176,9 @@ export const Dropzone = ({ onChange, ...props }) => {
 \end{lstlisting}
 \end{minipage}
 
-A \verb|Dropzone| nevű React-függvénykomponens maga az input mező egy rejtett HTML-elem, amely a \verb|fileInputRef| referencián keresztül érhető el. A fájlok feltöltésére a \verb|handleFiles| függvény felelős, amely a kiválasztott fájlokat egy tömbbé alakítja, és kihív a paraméterben átadott \verb|onChange| függvényre a szülőkomponensben. A konkrét szerver felé kommunikálást a szülőkomponens végzi.
+A \verb|Dropzone| nevű React-függvénykomponens maga az input mező egy rejtett HTML-elem, amely a \verb|fileInputRef| referencián keresztül érhető el. A fájlok feltöltésére a~\verb|handleFiles| függvény felelős, amely a kiválasztott fájlokat egy tömbbé alakítja, és kihív a paraméterben átadott \verb|onChange| függvényre a szülőkomponensben. A konkrét szerver felé kommunikálást a szülőkomponens végzi.
 
-Feltöltés végeztével a szerkesztői felületen megjelenik a ``Videó megtekintése'' gomb, amelyre kattintva elnavigál a weboldal egy új aloldalra, ahol a videólejátszó is implementálásra került. A videólejátszó komponens a \verb|VideoPlayer| nevű React-függvénykomponens, amely a \verb|hls.js| nevű könyvtárat használja a stream letöltés kezelésére. A \ref{lst:videoPlayer}. kódrészlet mutatja be a könyvtár használatát, a komponens implementációját.
+Feltöltés végeztével a szerkesztői felületen megjelenik a ``Videó megtekintése'' gomb, amelyre kattintva elnavigál a weboldal egy új aloldalra, ahol a videólejátszó is implementálásra került. A videólejátszó komponens a \verb|VideoPlayer| nevű React-függvénykomponens, amely a \verb|hls.js| nevű könyvtárat használja a stream letöltés kezelésére. \Az+\ref{lst:videoPlayer}. kódrészlet mutatja be a könyvtár használatát, a komponens implementációját.
 
 \begin{minipage}{0.92\textwidth}
   \begin{lstlisting}[
@@ -209,7 +209,7 @@ export const VideoPlayer = ({ src, width, height }) => {
 \end{lstlisting}
 \end{minipage}
 
-A szerveroldalon a feltöltésre kerülő nyers videók egy arra kijelölt S3-vödörbe kerülnek továbbításra. A korábban ismertetett (\ref{sec:nodejs}. alfejezet) videókért felelős NestJS-modulbeli \verb|VideoController| és \verb|VideoService| osztályokból emeli ki rendre a \ref{lst:videoController}. kódrészlet és a \ref{lst:videoService} kódrészlet a fontosabb részeket.
+A szerveroldalon a feltöltésre kerülő nyers videók egy arra kijelölt S3-vödörbe kerülnek továbbításra. A korábban ismertetett (\ref{sec:nodejs}. alfejezet) videókért felelős NestJS-modulbeli \verb|VideoController| és \verb|VideoService| osztályokból emeli ki rendre \az+\ref{lst:videoController}. kódrészlet és \az+\ref{lst:videoService} kódrészlet a fontosabb részeket.
 
 \begin{minipage}{0.92\textwidth}
   \begin{lstlisting}[
@@ -236,7 +236,7 @@ A feltöltéshez szükséges fájlok a kliensoldalon kerülnek kiválasztásra, 
 
 A \verb|VideoService|-ben működő \verb|upload| függvény felé lesz a kapott fájl bufferje továbbítva, végül a service függvény eredményéből született fájlnévvel kerül az adatbázisba is lementésre az entitásként a videó is a \verb|afterUpload| függvény által.
 
-A \verb|VideoService| az AWS SDK S3 API-ját használja a fájlok vödörbe való feltöltésére. Ehhez létrehoztam tagváltozóként a \verb|s3Client|-et. A \verb|upload| függvény először átalakítja a fájlnevet, megtartja a kiterjesztést, viszont a dátumot szerkeszti bele a konkrét névbe. Majdpedig készít egy \verb|PutObjectCommand| típusú objektumot, amellyel a megfelelő helyre és névvel kerül feltöltésre az \verb|s3Client|-en keresztül a fájl.
+A \verb|VideoService| az AWS SDK S3 API-ját használja a fájlok vödörbe való feltöltésére. Ehhez létrehoztam tagváltozóként a \verb|s3Client|-et. Az \verb|upload| függvény először átalakítja a fájlnevet, megtartja a kiterjesztést, viszont a dátumot szerkeszti bele a konkrét névbe. Majd pedig készít egy \verb|PutObjectCommand| típusú objektumot, amellyel a megfelelő helyre és névvel kerül feltöltésre az \verb|s3Client|-en keresztül a fájl.
 
 \begin{minipage}{0.92\textwidth}
   \begin{lstlisting}[
