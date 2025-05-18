@@ -12,35 +12,35 @@ Szokásos összekeverni, de a konténerformátumoktól függetlenül a mozgóké
 
 \subsection{Konténerformátumok}
 
-A legelterjedtebb és legszélesebb körben támogatott konténerformátum a Moving Picture Experts Group (MPEG) gondozásában specifikált MP4 -- avagy a sztenderdben használt nevén: MPEG-4 Part 14 --, amely az MPEG-4 projekt részeként született 2001-ben.
+A legelterjedtebb és legszélesebb körben támogatott konténerformátum a Moving Picture Experts Group (MPEG) gondozásában specifikált MP4 -- avagy a standardban használt nevén: \emph{MPEG-4 Part 14} --, amely az MPEG-4 projekt részeként született 2001-ben.
 
-Ugyancsak az MPEG gondozásában, az MPEG-2 projekt részeként született 1995-ben az MPEG Transport Stream (MPEG-TS) konténerformátum, amely elsősorban a digitális televíziózásban használatos, és így az internetes videó streaming során is. Felbontja a~videóadatokat kisebb, fix hosszú adatcsomagokra, ezzel is előkészítve a tulajdonképpeni kis késleltetésű azonnali továbbítására a videóanyagnak a hálózaton keresztül.
+Ugyancsak az MPEG gondozásában, az MPEG-2 projekt részeként született 1995-ben az \emph{MPEG Transport Stream} (MPEG-TS) konténerformátum, amely elsősorban a digitális televíziózásban használatos, és így az internetes videó streaming során is. Felbontja a~videóadatokat kisebb, fix hosszú adatcsomagokra, ezzel is előkészítve a tulajdonképpeni kis késleltetésű azonnali továbbítására a videóanyagnak a hálózaton keresztül.
 
-További elterjedt konténerformátumok közé tartozik a Matroska Video (MKV), amely a hibatűréséről ismert; Apple vállalat által macOS-re és iOS-re optimalizálva fejlesztett QuickTime Movie (MOV) formátuma; valamint a WebM, egy szabad felhasználású webes kiszolgálásra optimalizálódott formátum, amelyet nagyobb jelentőségű webböngészők mind támogatnak. Régebbi, már kevésbé használt vagy kivezetett formátumok közé tartozik az Audio Video Interleave (AVI) és a Flash Video (FLV).
+További elterjedt konténerformátumok közé tartozik a Matroska Video (MKV), amely a hibatűréséről ismert; az Apple vállalat által macOS-re és iOS-re optimalizálva fejlesztett QuickTime Movie (MOV) formátuma; valamint a WebM, egy szabad felhasználású webes kiszolgálásra optimalizálódott formátum, amelyet nagyobb jelentőségű webböngészők mind támogatnak. Régebbi, már kevésbé használt vagy kivezetett formátumok közé tartozik az Audio Video Interleave (AVI) és a Flash Video (FLV).
 
 \subsection{A mozgóképkódolás technológiái}
 
-Az MPEG-4 projekt keretében született az Advanced Video Coding (AVC) -- avagy H.264 -- kódolási szabvány mozgókép kódolására, amely 2004-ban vált elérhetővé. Továbbra is ez az egyik legelterjedtebb szabvány, a videó streamingben használt konténerformátumok is ezt a kódolást alkalmazzák.
+Az MPEG-4 projekt keretében született az \emph{Advanced Video Coding} (AVC) -- avagy H.264 -- kódolási szabvány mozgókép kódolására, amely 2004-ben vált elérhetővé. Továbbra is ez az egyik legelterjedtebb szabvány, a videó streamingben használt konténerformátumok is ezt a kódolást alkalmazzák.
 
-Természetesen azóta több új szabvány is megjelent hasonlóan az MPEG projektjei alatt, mint például az 2013-ban megjelent High Efficiency Video Coding (HEVC) -- avagy H.265 --, amely az AVC-től jobb tömörítést és jobb minőséget ígér, de a licencdíjak miatt nem vált annyira elterjedtté, mint az elődje.
+Természetesen azóta több új szabvány is megjelent hasonlóan az MPEG projektjei alatt, mint például a 2013-ban megjelent \emph{High Efficiency Video Coding} (HEVC) -- avagy H.265 --, amely az AVC-től jobb tömörítést és jobb minőséget ígér, de a licenszdíjak miatt nem vált annyira elterjedtté, mint az elődje.
 
 Ezen modern problémák kiküszöbölésére terjedt el a VP8 és a VP9 -- a WebM formátumnak tagjaként --, illetve az AV1 szabad felhasználású kódolási szabványok.
 
-A szabványok konkrét megvalósításával (kodekek) nem foglalkozunk részletesebben, de egy szabad felhasználású és nyílt forráskódú megvalósítása a H.264-nek a x264, amelyet például az FFMpeg szoftvercsomag is használ videó kódolására és dekódolására.
+A szabványok konkrét megvalósításával (kodekek) nem foglalkozunk részletesebben, de egy szabad felhasználású és nyílt forráskódú megvalósítása a H.264-nek az \emph{x264}\footnote{\url{https://www.videolan.org/developers/x264.html}}, amelyet például az FFMpeg szoftvercsomag is használ videó kódolására és dekódolására.
 
 \subsection{A hangkódolás technológiái}
 
-Hanganyag kódolására is több szabványt tudunk megvizsgálni. Ilyen az MPEG Audio Layer III -- rövid nevén: MP3 -- 1991-ből, ezt 1997-ben az Advanced Audio Coding (AAC) szabvány váltotta le. Ezen szabványok az MPEG által kerültek kifejlesztésre, valamint mindkettő veszteséges tömörítést alkalmaz, azaz a kódoláson és dekódoláson átesett hanganyag minősége nem lesz azonos az eredeti hanganyaggal.
+Hanganyag kódolására is több szabványt tudunk megvizsgálni. Ilyen az \emph{MPEG Audio Layer III} -- rövid nevén: MP3 -- 1991-ből, ezt 1997-ben az \emph{Advanced Audio Coding} (AAC) szabvány váltotta le. Ezen szabványok az MPEG által kerültek kifejlesztésre, valamint mindkettő veszteséges tömörítést alkalmaz, azaz a kódoláson és dekódoláson átesett hanganyag minősége nem lesz azonos az eredeti hanganyaggal.
 
-Főleg a mozivilágban használt kódolás a Dolby AC-3 -- ismertebb nevén: Dolby Digital. Azonos bitrátánál is az előbbieknél jobb minőséget ígér. 2017-ben már lejárt a szabadalmi védelme, így azóta szabadon felhasználható, több konvertáló szoftverben (pl. FFMpeg) is elérhető rá már implementáció. Egy másik, születése (2012) óta szabad felhasználású kódolás az Opus, amelyet a Skype és a Discord is használ VoIP-alapú kommunikációra, és az összes eddig említett kódolásnál jobb minőséget produkál.
+Főleg a mozivilágban használt kódolás a \emph{Dolby AC-3} -- ismertebb nevén: Dolby Digital. Azonos bitrátánál is az előbbieknél jobb minőséget ígér. 2017-ben már lejárt a szabadalmi védelme, így azóta szabadon felhasználható, több konvertáló szoftverben (pl.: FFMpeg) is elérhető rá már implementáció. Egy másik, születése (2012) óta szabad felhasználású kódolás az Opus, amelyet a Skype és a Discord is használ VoIP-alapú kommunikációra, és az összes eddig említett kódolásnál jobb minőséget produkál.
 
 Természetesen találkozhattunk tömörítetlen (pl.: WAV), illetve veszteségmentes kódolásokkal is (pl.: FLAC) is, azonban a streaming világában ezek nem használatosak, mivel a nagyobb fájlméretük meghaladná a sávszélesség és a tárhely korlátait. Az AC-3 és AAC szabványok közül szokás választani a videó streaming során, széles körben kompatibilisek mindenféle lejátszó eszközzel, míg az Opus még nem eléggé támogatott.
 
 \section{Videó streaming kiszolgálása}\label{streamref}
 
-A média streaming egy olyan folyamat, amely során az médiaadatokat -- mi esetünkben videóadatot -- egy adott hálózati protokoll felett, egy adott konténerformátumban, adott kódolással továbbítjuk a végfelhasználók számára. Elsősorban az azonnali elérhetőségre összpontosít, azaz a lejátszásnak a lehető legkisebb késleltetéssel kell megtörténnie, kevésbé fontos a streaming során a minőség megtartása, mint ahogy az fontos lenne teljes médiumok egyben való letöltésekor.
+A média streaming egy olyan folyamat, amely során a médiaadatokat -- mi esetünkben videóadatot -- egy adott hálózati protokoll felett, egy adott konténerformátumban, adott kódolással továbbítjuk a végfelhasználók számára. Elsősorban az azonnali elérhetőségre összpontosít, azaz a lejátszásnak a lehető legkisebb késleltetéssel kell megtörténnie, kevésbé fontos a streaming során a minőség megtartása, mint ahogy az fontos lenne teljes médiumok egyben való letöltésekor.
 
-A streaming során az adatfolyamba helyezés előtt a videóadatokat újra kódoljuk (akár többször is, különböző célokat megvalósítva), majd kisebb adatcsomagokra -- úgynevezett ``packetekre'' -- bontjuk, és ezeket a csomagokat a~hálózaton keresztül továbbítjuk a végfelhasználók felé. Az adatcsomagok önmagukban is értelmezhetőek, a végfelhasználók lejátszó alkalmazásai képesek kell az adatcsomagokat a~megfelelő sorrendben és időzítéssel lejátszani. A streaming könnyen kell reagáljon a lejátszás során a folyamatjelző sávon történő ugrálásokra, azaz az előre- és visszatekerésre, mivel a videót nem kell teljes egészében letölteni a végfelhasználói eszközre, hanem a~feldarabolt videócsomagot a lejátszás során abban a pillanatban továbbítjuk, amikor arra szükség van.
+A streaming során az adatfolyamba helyezés előtt a videóadatokat újra kódoljuk (akár többször is, különböző célokat megvalósítva), majd kisebb adatcsomagokra -- úgynevezett ``packetekre'' -- bontjuk, és ezeket a csomagokat a~hálózaton keresztül továbbítjuk a végfelhasználók felé. Az adatcsomagok önmagukban is értelmezhetőek, a végfelhasználók lejátszó alkalmazásai képesek kell legyenek az adatcsomagokat a~megfelelő sorrendben és időzítéssel lejátszani. A streaming könnyen kell reagáljon a lejátszás során a folyamatjelző sávon történő ugrálásokra -- azaz az előre- és visszatekerésre --, mivel a videót nem kell teljes egészében letölteni a végfelhasználói eszközre, hanem a~feldarabolt videócsomagot a~lejátszás során abban a pillanatban továbbítjuk, amikor arra szükség van.
 
 \subsection{Az élő közvetítés és Video-on-Demand különbségei}
 
@@ -48,9 +48,9 @@ Annak megfelelően, hogy az adat egésze mikor áll rendelkezésünkre, kettő f
 
 Különböznek abban, hogy milyen fizikai infrastrukturális tervezést kell végrehajtani a legjobb kiszolgálás érdekében. Élő adásoknál a késleltetés a középponti kihívás, mivel a videóadatokat a lehető leggyorsabban kell továbbítani a végfelhasználók felé, hogy a~közvetítés valóban élőnek tűnjön, ehhez magas számítási teljesítmény szükséges. A VOD esetében a hálózati sávszélességből adódó problémák leküzdése a központi kihívás, mivel a videót általában ebben az esetben sokkal több felhasználó kívánja elérni, és ők is globálisan elszórt helyekről nézik a videót, nem mellesleg azt kiváló minőségben szeretnék megtekinteni otthonuk kényelméből. Ebben az esetben a caching és a tartalomterjesztés optimalizálása a kulcs, ekkor jönnek képbe a \emph{Content Delivery Networkök} (CDN-ek), azaz a tartalomterjesztő hálózatok.\cite{cdn}
 
-Üzleti szempontból a bevétel az élő adások során a közbeiktatott reklámokból származik főleg és a \emph{pay-per-view} rendszerekből, míg a VOD esetében a közbeiktatott reklámokon kívül a felhasználók előfizetési díjából, tranzakcionális egyszeri vásárlásból -- amennyiben a reklámokat kerülni szeretnék.
+Üzleti szempontból a bevétel az élő adások során a közbeiktatott reklámokból származik főleg és a \emph{pay-per-view} rendszerekből, míg a VOD esetében a közbeiktatott reklámokon kívül a felhasználók előfizetési díjából, tranzakcionális egyszeri vásárlásból származhat bevétel.
 
-\Az+\refstruc{fig:vodsetup} és \az+\refstruc{fig:livesetup} absztrakt példákat mutatnak a VOD-kiszolgálásban és egy élő közvetítésben résztvevő lehetséges médiaeszközeire. A rajtuk feltüntetett protokollok és fájlnevek/fájlkiterjesztések a~későbbi alfejezetek olvasása során érthetőek is lesznek.
+\Az+\refstruc{fig:vodsetup} és \az+\refstruc{fig:livesetup} absztrakt példákat mutatnak a VOD-kiszolgálás és az élő közvetítés résztvevő médiaeszközeire. A rajtuk feltüntetett protokollok és fájlnevek/fájlkiterjesztések a~későbbi alfejezetek olvasása során érthetőek is lesznek.
 
 \begin{figure}[h]
 	\centering
@@ -68,7 +68,7 @@ Különböznek abban, hogy milyen fizikai infrastrukturális tervezést kell vé
 
 \subsection{Adaptive Bitrate Streaming}
 
-A streamelést erősen befolyásoló tényező a hálózati feltételek változása, amelyek a videólejátszás minőségét és késleltetését is befolyásolják. Az Adaptive Bitrate Streaming (ABR) egy a hálózati kiszolgálás során alkalmazott technika, amely megoldást jelenthet erre a problémára.
+A streamelést erősen befolyásoló tényező a hálózati feltételek változása, amelyek a videólejátszás minőségét és késleltetését is befolyásolják. Az \emph{Adaptive Bitrate Streaming} (ABR) egy a hálózati kiszolgálás során alkalmazott technika, amely megoldást jelenthet erre a problémára.
 
 Az ABR során a forrásvideót több különböző bitrátával dolgozó kodekekkel és különböző felbontással kódoljuk a médiaszerveren, majd lejátszáskor a lejátszó alkalmazás a hálózati feltételek változására reagálva, valamint a fogadó fél számítási kapacitásától függően valós időben választja ki a megfelelő videó streamet ezek közül, onnan válogatja a packeteket (\refstruc{fig:ABR}).
 
@@ -79,7 +79,7 @@ Az ABR során a forrásvideót több különböző bitrátával dolgozó kodekek
 	\label{fig:ABR}
 \end{figure}
 
-Tiszta, hogy az ABR-t megvalósító rendszer előnyös mind a VOD, mind az élő közvetítés esetében, mivel a hálózati feltételek változása mindkét esetben előfordulhat, az~automatikus stream váltogatás beavatkozás nélkül sokkal nagyobb Quality of Experience (röviden QoE, magyarul \emph{az élmény minősége}) lehetőségét tudja biztosítani\cite{DashAbr}. Az ABR-t alkalmazó rendszerek a videóadatokat több különböző bitrátával kódolják, ez természetesen a feldolgozási idejét a rendszereknek megnöveli, sőt élő közvetítés során egységnyi idő alatt jóval több számítási terhelést kell kibírnia a rendszernek.
+Tiszta, hogy az ABR-t megvalósító rendszer előnyös mind a VOD, mind az élő közvetítés esetében, mivel a hálózati feltételek változása mindkét esetben előfordulhat. Az~automatikus stream váltogatás beavatkozás nélkül sokkal nagyobb \emph{Quality of Experience} (röviden QoE, magyarul az élmény minősége) lehetőségét tudja biztosítani\cite{DashAbr}. Az ABR-t alkalmazó rendszerek a videóadatokat több különböző bitrátával kódolják, ez természetesen a feldolgozási idejét a rendszereknek megnöveli, sőt élő közvetítés során egységnyi idő alatt jóval több számítási terhelést kell kibírnia a rendszernek.
 
 \section{Videó streaming hálózati protokolljai}
 
@@ -99,15 +99,15 @@ Néhány ismertebb célprotokoll létrejöttük időrendjében\cite{StreamingHis
 	\item Dynamic Adaptive Streaming over HTTP (DASH, 2012)
 \end{itemize}
 
-Jelen alfejezet ezen alkalmazásrétegben alkalmazott protokollok (Layer 7) közül vizsgálja meg a legelterjedtebbeket, kitérve arra is, milyen szállítási rétegű protokollokkal (Layer 4) tudnak együttműködni.
+A fent megnevezett alkalmazásrétegbeli protokollok (Layer 7) közül vizsgálják meg a~következő szekciók a négy legelterjedtebbet, kitérve arra is, milyen szállítási rétegű protokollokkal (Layer 4) tudnak együttműködni.
 
 \subsection{Real-Time Messaging Protocol}
 
-A Real-Time Messaging Protocolt (RTMP) nevű protokollt még a Macromedia nevű cég fejlesztette ki, amely vállalatot később az Adobe felvásárolta. Az RTMP egy teljes szervertől kliensig tartó protokoll, amely a Flash Player és a Flash Media Server közötti kommunikációra lett kifejlesztve eredendően. Közvetlen dolgozik a TCP felett, ennek nincs köze a~HTTP-hez.\cite{StreamingHistory} Az RTMP-t még támogatja sok-sok platform, mert egész alacsony késleltetést lehet vele elérni, egészen alacsony ``költségű'', a Twitch és a YouTube is támogatja, hogy RTMP pull üzemmódjában tudjunk ezeken a platformokon élő adást fogadni, tehát szerveroldalon még használt, persze a Flash Player támogatásának 2020-as kivezetése miatt a protokoll használata kliensoldalon pedig visszaszorult.
+A Real-Time Messaging Protocolt (RTMP) nevű protokollt még a Macromedia nevű cég fejlesztette ki eredetileg. A vállalatot később az Adobe felvásárolta. Az RTMP egy teljes szervertől kliensig tartó protokoll, amely a Flash Player és a Flash Media Server közötti kommunikációra lett kifejlesztve eredendően. Közvetlen dolgozik a TCP felett, ennek nincs köze a~HTTP-hez.\cite{StreamingHistory} Az RTMP-t még támogatja sok-sok platform, mert egész alacsony késleltetést lehet vele elérni, egészen alacsony ``költségű''. A Twitch és a YouTube is támogatja, hogy RTMP pull üzemmódjában tudjunk ezeken a platformokon élő adást fogadni. Tehát szerveroldalon még használt, persze a Flash Player támogatásának 2020-as kivezetése miatt a protokoll használata kliensoldalon pedig visszaszorult.
 
 \subsection{HTTP Live Streaming}
 
-A HTTP-alapú streaming protokollok közül a legelterjedtebb a HTTP Live Streaming (HLS), amelyet az Apple fejlesztett ki 2009-ben. A HLS eredetileg az Apple jogvédett kereskedelmi protokolljaként indult, azóta viszont már szabad felhasználásúvá vált. Az~Apple eszközök -- macOS, iOS -- alapértelmezetten támogatják ezt a protokollt, és a modern böngészők is támogatják a Media Source Extensions (MSE) API-n keresztül. A HLS a~HTTP felett dolgozik, egymástól független packetekre szedi a teljes kiszolgálandó videót, és az~RTMP-hez képest ez így állapotmentes adatforgalmazást tud megvalósítani.\cite{StreamingHistory}
+A HTTP-alapú streaming protokollok közül a legelterjedtebb a HTTP Live Streaming (HLS), amelyet az Apple fejlesztett ki 2009-ben. A HLS eredetileg az Apple jogvédett kereskedelmi protokolljaként indult, azóta viszont már szabad felhasználásúvá vált. Az~Apple`|eszközök -- macOS, iOS -- alapértelmezetten támogatják ezt a protokollt, és a modern böngészők is támogatják a \emph{Media Source Extensions} (MSE) API-n keresztül. A HLS a~HTTP felett dolgozik, egymástól független packetekre szedi a teljes kiszolgálandó videót, és az~RTMP-hez képest ez így állapotmentes adatforgalmazást tud megvalósítani.\cite{StreamingHistory}
 
 HLS használata során H.264 formátumban kell a videóadatokat kódolni, a hangot AAC, MP3 vagy Dolby szabványokkal lehet kódolni. A konténerformátumot tekintve is kötött, MPEG-2 Transport Stream (MPEG-TS) formátumot használhatjuk, vagy pedig az MP4-et -- fMP4 technikával, azaz \emph{fragmented MP4-gyel}, ehhez pedig a Common Media Application Format (CMAF) konténerformátumra kell átalakítani.\cite{Cmaf} A darabokra szedést követően a packeteket egy lejátszási listában (.m3u8 kiterjesztésű szöveges indexfájl) tartja számon a szerver, amelyet a lejátszó alkalmazások letöltenek, és a lejátszás során a~megfelelő sorrendben és időzítéssel lejátsszák.\cite{HlsApple} Lásd a példát egy 720p-s streamet leíró indexfájlra \az+\ref{lst:m3u8example}. kódrészletben.
 
@@ -139,14 +139,14 @@ skate_phantom_flex_4k_2112_720p5.ts
 
 \subsection{Dynamic Adaptive Streaming over HTTP}
 
-A Dynamic Adaptive Streaming over HTTP -- DASH vagy MPEG-DASH, tekintve a fejlesztője ennek is az MPEG csoport volt -- egy 2012-ben szabványosított protokoll. Hasonlít a HLS-hez, HTTP felett forgalmaz, sorozatba illeszt egymástól független packeteket. Ezeket a szegmentált packeteket egy \emph{manifest} fájlban tartja számon a szerver (Media Presentation Description, MPD-fájl).\cite{Dash}
+A Dynamic Adaptive Streaming over HTTP -- röviden DASH vagy MPEG-DASH, tekintve, hogy a fejlesztője ennek is az MPEG csoport volt -- egy 2012-ben szabványosított protokoll. Hasonlít a HLS-hez, HTTP felett forgalmaz, sorozatba illeszt egymástól független packeteket. Ezeket a szegmentált packeteket egy \emph{manifest} fájlban tartja számon a~szerver (Media Presentation Description, MPD-fájl).\cite{Dash}
 
-A HLS-hez képest ez a protokoll kodekagnosztikus, ami annyit jelent, hogy nem kötődik videókodekhez, használható H.264, H.265, akár VP9 is.\cite{DashIso} Igyekeztek ezzel a protokollal egyezményesíteni a tartalomvédelmet is, Common Encryptiont (CENC) használ titkosításra. Digitális jogkezelésre (Digital Rights Management, DRM) is agnosztikus. Amióta a HLS támogatja az CMAF konténerformátumban való szállítást, azóta könnyen át lehet arról állni akár DASH protokollra is, ugyanis a DASH is CMAF-alapú. A~DASH a~HTTP/2 protokollt is támogatja, sőt HTTP/3-at is már UDP felett.
+A HLS-hez képest ez a protokoll kodekagnosztikus, ami annyit jelent, hogy nem kötődik videókodekhez, használható H.264, H.265, akár VP9 is.\cite{DashIso} Igyekeztek ezzel a protokollal egyezményesíteni a tartalomvédelmet is, Common Encryptiont (CENC) használ titkosításra. Digitális jogkezelésre (Digital Rights Management, DRM) is agnosztikus. Amióta a HLS támogatja a CMAF konténerformátumban való szállítást, azóta könnyen át lehet arról állni akár DASH protokollra is, ugyanis a DASH is CMAF-alapú. A~DASH a~HTTP/2 protokollt is támogatja, sőt HTTP/3-at is már UDP felett.
 
-A HLS-hez hasonló elvekkel dolgozik a DASH is, illetve ez is egy ABR technológiájú protokoll. A DASH implementációjára JavaScript motorral rendelkező kliensekben -- böngészők, mobiltelefonok stb. -- a \emph{dash.js}\footnote{\url{https://dashjs.org/}} könyvtárat használják legtöbb esetben.
+A HLS-hez hasonló elvekkel dolgozik a DASH is, illetve ez is egy ABR technológiájú protokoll. A DASH implementációjára JavaScript-motorral rendelkező kliensekben -- böngészők, mobiltelefonok stb. -- a \emph{dash.js}\footnote{\url{https://dashjs.org/}} könyvtárat használják legtöbb esetben.
 
 \subsection{WebRTC}
 
 A WebRTC (Web Real Time Communications) egy nyílt forráskódú projekt részeként alapult -- támogatják kódbázisának fenntartását mind a Google, a Mozilla és az Opera csapatai is --, egy protokoll böngészőalapú valós idejű kommunikáció kialakítására. Ezt használja a Discord, a Google Chat és egyéb webes videóchat-alkalmazások.\cite{StreamingHistory}
 
-A források és a streamet figyelők számának kardinalitása szempontjából ez eltér az előzőekben ismertetettektől -- amelyek egy forrás és több befogadóra optimalizált --, ez viszont peer-to-peer (P2P) alapú, tehát oda-vissza jellegű streamelést kell biztosítson, emiatt a WebRTC a legjobb választás, amennyiben a felhasználási célja az, hogy a felhasználók közvetlenül egymással kommunikálhassanak, és nem szükséges közbeiktatni egy központi médiaszervert. Ezenkívül a WebRTC-t egyre szélesebb körben próbálják alkalmazni a~videó streaming területén is one-to-many közvetítésre is. Szabad felhasználású kodekeket alkalmaz videó- és hangkódolás terén (pl.: Opus, VP9).\cite{WebRTC}
+A források és a streamet figyelők számának kardinalitása szempontjából ez eltér az előzőekben ismertetettektől -- amelyek egy forrás és több befogadóra optimalizáltak --, ez viszont peer-to-peer (P2P) alapú, tehát oda-vissza jellegű streamelést kell biztosítson. Emiatt a WebRTC a legjobb választás, amennyiben a felhasználási célja az, hogy a felhasználók közvetlenül egymással kommunikálhassanak, és nem szükséges közbeiktatni egy központi médiaszervert. Ezenkívül a WebRTC-t egyre szélesebb körben próbálják alkalmazni a~videó streaming területén is \emph{one-to-many} közvetítésre is. Szabad felhasználású kodekeket alkalmaz videó- és hangkódolás terén (pl.: Opus, VP9).\cite{WebRTC}

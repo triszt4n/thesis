@@ -13,13 +13,13 @@ A streaming szolgáltatást alapvetően egy központosított kliensoldali webes 
         \begin{itemize}
           \item Habár a videók megtekintéséhez nincs szükség felhasználókezelésre és bejelentkezésre, viszont a videók kezeléséhez szükséges megvalósítani a felhasználók azonosítását és jogosultságkezelését.
           \item A felhasználók AuthSCH\footnote{\url{https://vik.wiki/AuthSCH}} segítségével tudnak bejelentkezni a rendszer ``stúdió'' nevezetű aloldalára, ahol a rendszer azonosítja őket AuthSCH-s profiljuk alapján, automatikusan jön létre felhasználói fiókjuk, regisztrációra külön nincs szükség.
-          \item A felhasználók közötti különbséget a rendszerben adminisztrátorok és normál felhasználók között teszem meg, az előbbieknek jogosultságuk van a videók feltöltésére és kezelésére, az utóbbiaknak csupán bejelentkezésre későbbi adminisztrátorrá válásra, amennyiben másik adminisztrátor úgy dönt.
+          \item A felhasználók közötti különbséget a rendszerben adminisztrátorok és normál felhasználók között teszem meg, az előbbieknek jogosultságuk van a videók feltöltésére és kezelésére, az utóbbiaknak csupán bejelentkezésre; majd pedig adminisztrátorrá válásra, amennyiben másik adminisztrátor úgy dönt.
         \end{itemize}
 
   \item Videóprojektek kezelésére vonatkozó funkciócsoport
         \begin{itemize}
           \item Az adminisztrátorok a ``stúdió'' aloldalon tudnak új videóprojekteket létrehozni, amelyekhez a rendszer automatikusan generál egy egyedi azonosítót.
-          \item Egy videóprojekt létrehozása után tudunk a videókhoz tartozó metaadatokat adni, azokon módosítani, mint például a cím, leírás, borítókép, kategória, résztvevő stábtagok.
+          \item Egy videóprojekt létrehozása után tudunk a videókhoz metaadatokat adni, azokon módosítani. Ilyenek a cím, leírás, borítókép, kategória, résztvevő stábtagok.
           \item A videóprojektben lehetőség van egy darab MP4 konténerformátumú videó feltöltésére.
           \item Van lehetőség a videóprojekt teljes törlésére.
           \item A feltöltés után a felhasználói felület visszajelzést kell adjon arról, hol tart a~videó feltöltési folyamata, illetve a videókonvertálás folyamata a hálózati adatfolyamra való felkészítéshez.
@@ -29,14 +29,14 @@ A streaming szolgáltatást alapvetően egy központosított kliensoldali webes 
   \item Élő közvetítés kezelésére vonatkozó funkciócsoport
         \begin{itemize}
           \item Az oldal kezdetlegesen csupán egy élő közvetítés adását támogatja, az adminisztrátor a ``stúdió'' aloldalon tudja ezt az egyetlen élő közvetítést indítani.
-          \item A rendszer biztosítja, hogy fogadja egy külső forrásból (pl.: OBS Studio alkalmazásból) a felstreamelt videót a felhőn át és azt továbbítja a nézőknek.
+          \item A rendszer biztosítja, hogy fogadja egy külső forrásból (pl.: OBS Studio alkalmazásból) a felstreamelt videót a felhőn át, és azt továbbítja a nézőknek.
           \item Az oldalon kell, legyen egy útvonal a nézők számára, ahol a közvetítés élőben megtekinthető.
         \end{itemize}
 \end{itemize}
 
 \section{Nem funkcionális követelmények}
 
-A rendszerrel szemben támasztott nem funkcionális követelmények megállapításakor igyekeztem olyan dolgokra a hangsúlyt tenni, amelyek inkább számomra jelentenek kihívást, mivel nem terveztem a webalkalmazást úgy elkészíteni, hogy az valódi használatra készüljön -- azaz valódi haszna legyen és legyenek élő felhasználói a nagyvilágból, csupán a~kísérletnek volt része. Ezeket az elvárásokat a következőkben állapítottam meg:
+A rendszerrel szemben támasztott nem funkcionális követelmények megállapításakor igyekeztem olyan dolgokra a hangsúlyt tenni, amelyek inkább számomra jelentenek kihívást, mivel nem terveztem a webalkalmazást úgy elkészíteni, hogy az valódi használatra készüljön -- azaz valódi haszna legyen és legyenek élő felhasználói a nagyvilágból --, csupán a~kísérletnek volt része. Ezeket az elvárásokat a következőkben állapítottam meg:
 
 \begin{itemize}
   \item Biztonság
@@ -50,12 +50,12 @@ A rendszerrel szemben támasztott nem funkcionális követelmények megállapít
     \item A konténer és a buildelendő kódok automatikusan fordulnak és települnek a~CI/CD-folyamat részeként.
     \item A frissítések könnyedén kezelhetőek, erre alkalmazásra kerül konténerképeket tároló Docker Registry is.
     \item Eseményvezérelt architektúra az alkalmazás egyes folyamatainak megvalósítására és a szerveralkalmazás köré, hogy könnyen kiterjeszthető lehessen új funkcionalitásokkal.
-    \item Az infrastruktúra kód formájában (Infrastructure as Code, IaC) is dokumentált, hogy könnyen lehessen újraépíteni a rendszert.
+    \item Az infrastruktúra kód formájában (\emph{Infrastructure as Code}, IaC) is dokumentált, hogy könnyen lehessen újraépíteni a rendszert.
   \end{itemize}
   \item Elaszticitás
   \begin{itemize}
     \item Alkalmazásra kerül olyan futtatókörnyezet, amelyben könnyedén lehet az erőforrásokat növelni és csökkenteni, hogy a rendszer mindig a szükséges kapacitással rendelkezzen.
-    \item Alkalmazásra kerül a CDN használata, hogy a videók gyorsan és megbízhatóan érhetőek legyenek el a nézők számára.
+    \item Alkalmazásra kerül egy CDN szolgáltatása, hogy a videók gyorsan és megbízhatóan legyenek elérhetőek a nézők számára.
   \end{itemize}
   \item Költséghatékonyság
   \begin{itemize}
