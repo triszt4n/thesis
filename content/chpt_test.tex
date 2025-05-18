@@ -6,14 +6,14 @@ A weboldalamon a \verb|/live| útvonalon megtekintettem az előzőleg (\ref{sec:
 
 \begin{figure}[h]
   \centering
-  \includegraphics[width=100mm, keepaspectratio]{figures/waterfall1.png}
+  \includegraphics[width=110mm, keepaspectratio]{figures/waterfall1.png}
   \caption{A /live útvonalon látható aloldal.}
   \label{fig:waterfall1}
 \end{figure}
 
 \begin{figure}[h]
   \centering
-  \includegraphics[width=100mm, keepaspectratio]{figures/waterfall2.png}
+  \includegraphics[width=150mm, keepaspectratio]{figures/waterfall2.png}
   \caption{HTTP-kérések vízesése a /live oldalon.}
   \label{fig:waterfall2}
 \end{figure}
@@ -38,7 +38,7 @@ Nyilván egy 1 éves caching policy bekapcsolásával a \verb|/media-assets| el�
   \begin{lstlisting}[
     caption=A k6 tesztelő szkript kódja.,
     label=lst:k6,
-    style=tf,
+    style=js,
     basicstyle=\fontsize{10}{12}\ttfamily,
   ]
 export const options = {

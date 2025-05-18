@@ -2,7 +2,14 @@
 
 A streaming rendszereket kiszolgáló technológiák fejlődése közel sem ért véget, a QUIC protokoll -- és az arra épülő Media over QUIC\cite{ietf-moq-transport-11} (MoQ) -- előretörésével, új modern CDN-funkcionalitásokkal\cite{openconnect}, a szerverfarmokban használt alkalmazásspecifikus chipek fejlődésével, illetve hatékonyabb kodekek megjelenésével egyre magasabb minőséget lehet szolgáltatni. Az általam bemutatott rendszer egy egyszerűsített példája a streaming rendszereknek, amely lehetőséget ad arra, hogy megértsük a mögöttes technológiákat és azok működését, betekintést nyújt néhány tipikusan streamingre használt AWS-erőforrás világába, a~tervezési technikák palettájába.
 
-A fejlesztés ideje alatt ahogy egyre több komponenst kötöttem a rendszerbe, úgy nőtt a felhőszolgáltatások költsége is. A dolgozat írásához többször újrateszteltem a futó rendszert, a márciusi összköltsége AWS-ben \$67.98 lett, áprilisban \$73.29, ezekben az összegekben a~legjelentősebbek közé tartozott az RDS-adatbázis (\$14--\$17 között), az ALB-példány (\$17--\$20 között) és az ECS-klaszter (\$10--\$11 között) költsége, ezek nem on-demand jellegűek. Pár szolgáltatás (Lambda, CloudWatch Logs) pedig a \emph{free tier}, azaz ingyenes átkategóriában tudott maradni. Májusra a Cost Management \$78-t jelzett előre, a hónapban végzett k6 tesztelés próbálgatása miatti (\ref{sec:vod_test}. alfejezet) kb. 100 GB CloudFront-forgalom se emelte jobban.
+A fejlesztés ideje alatt ahogy egyre több erőforrást kötöttem be, nőtt a felhőszolgáltatások költsége is. A dolgozat írásákor többször teszteltem a megoldást, a~márciusi összköltsége \$67.98 lett, áprilisban \$73.29 (lásd \refstruc{fig:costs}). Ezekben az összegekben a~legjelentősebbek közé tartozott az RDS-adatbázisnak, az ALB-példánynak, a MediaLive futtatásának és az ECS-klaszternek a költsége, ezek nem on-demand jellegűek, VM van mögöttük. Pár szolgáltatás (Lambda, CloudWatch Logs) pedig a \emph{free tier}, azaz ingyenes átkategóriában tudott maradni. Májusra \$78-t jelzett előre, a hónapban végzett k6 tesztelés alatti (\ref{sec:vod_test}. alfejezet) kb. 100 GB CDN-forgalom se emelte jobban.
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=150mm, keepaspectratio]{figures/costs.png}
+  \caption{Költségkimutatás az AWS-konzolon.}
+  \label{fig:costs}
+\end{figure}
 
 \section{Továbbfejlesztés lehetőségei}
 
